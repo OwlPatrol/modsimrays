@@ -35,3 +35,9 @@
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+
+# Directories we don't really need #
+#########################
+zig-cache/
+zig-out/
