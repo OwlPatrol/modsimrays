@@ -2,7 +2,7 @@ const std = @import("std");
 const rays = @import("rays.zig");
 const Vec3 = @import("vector.zig").Vec3;
 const Shape = @import("object.zig").Shape;
-const HitRecord = rays.HitRecord;
+const HitRecord = @import("hitrecord.zig").HitRecord;
 const Ray = rays.Ray;
 
 var object_list: []Shape;

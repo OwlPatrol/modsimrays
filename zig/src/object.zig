@@ -1,3 +1,5 @@
+const Vec3 = @import("vector.zig").Vec3;
+
 pub fn isBetween(n: f32, max:f32, min: f32) bool {
     return if (n < min) false else if (n > max) false else true;
 }

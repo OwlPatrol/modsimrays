@@ -2,6 +2,8 @@ const std = @import("std");
 const rand = std.rand.Random;
 const Scene = @import("scene.zig");
 const Vec3 = @import("vector.zig").Vec3;
+const HitRecord = @import("hitrecord.zig");
+
 
 fn floatRand() f32 {
     var x = rand.float();
@@ -9,12 +11,6 @@ fn floatRand() f32 {
 }
 
 const black: Vec3 = .{0, 0, 0};
-
-const HitRecord = struct {
-    t: f32 = 0,
-    p: Vec3 = Vec3,
-    normal: Vec3 = Vec3
-};
 
 /// A Ray has a direction vector and a starting point.
 const Ray = struct {
@@ -40,7 +36,6 @@ const Ray = struct {
             return; return (Vec3 {1, 1, 1}).scalar(1 - t) + (Vec3{0.5, 0.7, 1.0}).scalar(t);
         }
     }
-
 };
 
 
