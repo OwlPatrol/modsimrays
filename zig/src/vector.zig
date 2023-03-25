@@ -1,17 +1,24 @@
 const std = @import("std");
+const RndGen = std.rand.RndGen;
+
+fn floatRand() f32 {
+    var rand = RndGen.init(0);
+    var x = rand.random().float(f32);
+    return if (rand.random().boolean()) x else - x; 
+}
 
 /// A struct to deal with 3-dimensional vectors and colors
-const Vec3 = struct {
+pub const Vec3 = struct {
     x: f32 = 0,
     y: f32 = 0,
     z: f32 = 0,
     
     /// Constructor for a Vec3
-    pub fn init(x, y, z) Vec3 {
+    pub fn init(x: f32, y: f32, z: f32) Vec3 {
         return Vec3 {
             .x = x,
             .y = y,
-            .z = z
+            .z = z,
         };
     }
 
@@ -40,19 +47,19 @@ const Vec3 = struct {
     /// Naive asf cross product function.
     pub fn cross(self: Vec3, other: Vec3) Vec3 {
         return Vec3 {
-            .x = self.y * other.z -  self.z * other.y,
-            .y = self.z * other.x -  self.x * other.z,
-            .z = self.x * other.y -  self.y * other.x,
+            .x = self.y * other.z - self.z * other.y,
+            .y = self.z * other.x - self.x * other.z,
+            .z = self.x * other.y - self.y * other.x,
         };
     }
 
     /// Scalar Multiplication doesn't exist in zig, who knew? 
     /// We need it tho.
-    pub fn scalar(self: Vec3, scalar: f32) Vec3 {
+    pub fn scalar(self: Vec3, num: f32) Vec3 {
         return Vec3 {
-            .x = self.x * scalar,
-            .y = self.y * scalar,
-            .z = self.z * scalar,            
+            .x = self.x * num,
+            .y = self.y * num,
+            .z = self.z * num,            
         };
     } 
 };
