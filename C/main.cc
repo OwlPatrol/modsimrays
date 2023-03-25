@@ -7,6 +7,7 @@
 #include "surface.h"
 #include "camera.h"
 #include <iostream>
+#include "raylib.h"
 
 color ray_color(const ray& r, const surface& world, int depth) {
 
