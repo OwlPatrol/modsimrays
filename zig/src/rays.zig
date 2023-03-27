@@ -1,18 +1,18 @@
 const std = @import("std");
-const Scene = @import("scene.zig");
-const Vec3 = @import("vector.zig").Vec3;
-const HitRecord = @import("hitrecord.zig");
+const Scene = @import("scene.zig").Scene;
+const Vec3 = @import("vector.zig");
+const HitRecord = @import("hitrecord.zig").HitRecord;
 
-const black = Vec3{};
+const black = @Vector(3,f32){0,0,0};
 
 /// A Ray has a direction vector and a starting point.
 pub const Ray = struct {
     // From where it's going
-    origin: Vec3, 
+    origin: @Vector(3, f32), 
     // Direction the ray is going
-    dir: Vec3,
+    dir: @Vector(3, f32),
     
-    pub fn init(origin: Vec3, dir: Vec3) Ray {
+    pub fn init(origin: @Vector(3, f32), dir: @Vector(3, f32)) Ray {
         return Ray {
             .origin = origin,
             .dir = dir,
@@ -20,20 +20,20 @@ pub const Ray = struct {
     }
 
     // Where it ends up
-    pub fn pointsAt(self: Vec3, t:f32) Vec3 {
-        return self.dir.scalar(t) + self.origin; // May need to use @Vector here
+    pub fn pointsAt(self: Ray, t:f32) @Vector(3,f32) {
+        return Vec3.scalar(self.dir, t) + self.origin;
     }
 
-    pub fn color(self: Ray, scene: Scene, depth: usize) Vec3 {
-        var hit_rec: HitRecord = HitRecord{};
+    pub fn color(self: Ray, scene: Scene, depth: usize) @Vector(3,f32) {
+        var hit_rec = HitRecord{.t = 0, .p = black, .normal = black};
         if (depth == 0) return black;
-        if (scene.hit(self, scene)) {
-            const target: Vec3 = hit_rec.p + hit_rec.normal + Vec3.random();
-            return color(Ray{hit_rec.p, target - hit_rec.p}, scene, depth - 1);
+        if (scene.hit(self, 0.001, std.math.floatMax(f32), &hit_rec)) {
+            const target: @Vector(3, f32) = hit_rec.p + hit_rec.normal + Vec3.random();
+            return color(Ray.init(hit_rec.p, (target - hit_rec.p)), scene, depth - 1);
         } else {
-            var unit_dir: Vec3 = self.direction.normalize();
-            var t: f32 = 0.5 * (unit_dir.y + 1.0);
-            return (Vec3 {1, 1, 1}).scalar(1 - t) + (Vec3{0.5, 0.7, 1.0}).scalar(t);
+            var unit_dir: @Vector(3, f32) = Vec3.normalize(self.dir);
+            var t: f32 = 0.5 * (unit_dir[1] + 1.0);
+            return Vec3.scalar(Vec3.init(0, 0, 0), 1 - t) + Vec3.scalar(Vec3.init(0.5, 0.7, 1.0), t);
         }
     }
 };
