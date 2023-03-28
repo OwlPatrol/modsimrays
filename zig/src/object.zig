@@ -52,7 +52,7 @@ pub const Sphere = struct {
 
         hit_rec.*.p = ray.pointsAt(hit_rec.*.t);
         var norm = Vec3.scalar(hit_rec.*.p - self.center, 1 / self.radius);
-        hit_rec.*.normal = norm;
+        hit_rec.setFaceNormal(ray, norm);
         return true;
     }
 };

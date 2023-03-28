@@ -31,7 +31,7 @@ pub const Ray = struct {
             var target = hit_rec.p + hit_rec.normal + Vec3.random();
             return Vec3.scalar(color(Ray.init(hit_rec.p, target - hit_rec.p), scene, depth - 1), 0.5);
         } else {
-            var unit_dir: @Vector(3, f32) = Vec3.normalize(self.dir);
+            var unit_dir = Vec3.normalize(self.dir);
             var t: f32 = 0.5 * (unit_dir[1] + 1.0);
             return (Vec3.scalar(Vec3.init(1, 1, 1), 1 - t) + Vec3.scalar(Vec3.init(0.5, 0.7, 1.0), t));
         }

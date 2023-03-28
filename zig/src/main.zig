@@ -12,34 +12,29 @@ const Vec3 = @import("vector.zig");
 const Camera = @import("camera.zig").Camera;
 
 pub fn main() !void {
-
-    var file = try std.fs.cwd().createFile("output.ppm",  .{});
-    defer file.close();
-
+    // Program relevant initialization
     var rand = RndGen.init(0);
     const width: usize = 1000;
-    const height: usize = 500;
-    // Samples per pixel
+    const height: usize = @as(usize, 9000 / 16);
     const samples: usize = 100;
     const max_depth = 50;
-
-     _ = c.SDL_Init(c.SDL_INIT_VIDEO);
-    defer c.SDL_Quit();
-
-    const window = c.SDL_CreateWindow("SDL2 Example", c.SDL_WINDOWPOS_UNDEFINED, c.SDL_WINDOWPOS_UNDEFINED, width, height, c.SDL_WINDOW_SHOWN);
-    defer c.SDL_DestroyWindow(window);
-
-    const renderer = c.SDL_CreateRenderer(window, -1, 0);
-    defer c.SDL_DestroyRenderer(renderer);
-
-
     var cam = Camera.init();
     var sim_scene = scene.init();
 
-    try file.writer().print("P3\n{} {}\n255\n", .{width, height});
-    
+    // Pixel painting, initiating sdl2 and such 
+     _ = c.SDL_Init(c.SDL_INIT_VIDEO);
+    defer c.SDL_Quit();
+    const window = c.SDL_CreateWindow("SDL2 Example", c.SDL_WINDOWPOS_UNDEFINED, c.SDL_WINDOWPOS_UNDEFINED, width, height, c.SDL_WINDOW_SHOWN);
+    defer c.SDL_DestroyWindow(window);
+    const renderer = c.SDL_CreateRenderer(window, -1, 0);
+    defer c.SDL_DestroyRenderer(renderer);
     const surface = c.SDL_CreateRGBSurface(0, width, height, 32, 0, 0, 0, 0);
     defer c.SDL_FreeSurface(surface);
+
+    // ppm file gen
+    var file = try std.fs.cwd().createFile("output.ppm",  .{});
+    defer file.close();
+    try file.writer().print("P3\n{} {}\n255\n", .{width, height});
 
     for (0..height) |row| {
         for (0..width) |col| {
