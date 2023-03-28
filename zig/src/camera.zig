@@ -17,7 +17,7 @@ pub const Camera = struct {
         };
     }
 
-    pub fn get_ray(self: Camera, u: f32, v: f32) Ray {
+    pub fn getRay(self: Camera, u: f32, v: f32) Ray {
         return 
         Ray.init
         (

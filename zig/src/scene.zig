@@ -8,10 +8,16 @@ const Ray = rays.Ray;
 
 pub const Scene = struct {
 
-    object_list: [2]Shape = .{
-        object.Shape.init(@Vector(3, f32) {0, 0, -1}, 0.5), 
-        object.Shape.init(@Vector(3, f32) {0, -100.5, -1.0}, 100),
-    },
+    object_list: [2]Shape,
+
+    pub fn init() Scene {
+        return Scene {
+            .object_list =  .{
+                object.Shape.init(Vec3.init(0, 0, -1), 0.5), 
+                object.Shape.init(Vec3.init(0, -100.5, -1.0), 100),
+            },
+        };
+    }
 
     pub fn addObject(self: Scene, thing:Shape) Scene {
         var new_list = [_]Shape {thing} ++ self.object_list;
