@@ -1,7 +1,7 @@
-const Vec3 = @import("vector.zig").Vec3;
+const Vec3 = @import("vector.zig");
 
 pub const HitRecord = struct {
     t: f32 = 0,
-    p: Vec3 = Vec3,
-    normal: Vec3 = Vec3
+    p: @Vector(3,f32) = Vec3.init(0,0,0),
+    normal: @Vector(3,f32) = Vec3.init(0,0,0),
 };

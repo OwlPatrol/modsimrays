@@ -2,14 +2,13 @@ const std = @import("std");
 const print = std.debug.print;
 const c = 
     @cImport({
-        @cInclude("raylib.h");
-        @cInclude("<iostream>");
+        @cInclude("SDL.h");
         });
 const RndGen = std.rand.DefaultPrng;
 const Ray = @import("rays.zig").Ray;
-const scene = @import("scene.zig");
+const scene = @import("scene.zig").Scene;
 const object = @import("object.zig");
-const Vec3 = @import("vector.zig").Vec3;
+const Vec3 = @import("vector.zig");
 const Camera = @import("camera.zig").Camera;
 
 pub fn main() !void {
@@ -21,34 +20,54 @@ pub fn main() !void {
     const samples: usize = 100;
     const max_depth = 50;
 
+     _ = c.SDL_Init(c.SDL_INIT_VIDEO);
+    defer c.SDL_Quit();
+
+    const window = c.SDL_CreateWindow("SDL2 Example", c.SDL_WINDOWPOS_UNDEFINED, c.SDL_WINDOWPOS_UNDEFINED, width, height, c.SDL_WINDOW_SHOWN);
+    defer c.SDL_DestroyWindow(window);
+
+    const renderer = c.SDL_CreateRenderer(window, -1, 0);
+    defer c.SDL_DestroyRenderer(renderer);
+
+
     var cam = Camera.init();
     var sim_scene = scene {};
 
-    print("P3\n{} \n255\n{}", .{width, height});
+//    print("P3\n{} {}\n255\n", .{width, height});
+
+    const surface = c.SDL_CreateRGBSurface(0, width, height, 32, 0, 0, 0, 0);
+    defer c.SDL_FreeSurface(surface);
 
     for (0..height) |row| {
         for (0..width) |col| {
-            var color = Vec3 {};
+            var color = Vec3.init(0,0,0);
             for (0..samples) |_| {
                 var u: f32 = (@intToFloat(f32, col) + rand.random().float(f32)) / @intToFloat(f32, width);
                 var v: f32 = (@intToFloat(f32, row) + rand.random().float(f32)) / @intToFloat(f32, height);
                 var ray: Ray = cam.get_ray(u, v);
-                //_ = ray.point_at(2.0); // Why?
+                _ = ray.pointsAt(2.0); // Why?
                 var color_vec: @Vector(3, f32) = color;
                 var add_vec: @Vector(3, f32) = ray.color(sim_scene, max_depth);
                 color_vec += add_vec;
                 color = Vec3.init(color_vec[0], color_vec[1], color_vec[2]);
             }
 
-            color.scalar(1/@intToFloat(f32, samples));
-            color = Vec3{@sqrt(color.x), @sqrt(color.y),@sqrt(color.z)};
-            var ir: usize = @floatToInt(usize, 255.99*color.x);
-            var ig: usize = @floatToInt(usize, 255.99*color.y);
-            var ib: usize = @floatToInt(usize, 255.99*color.z);
+            color = Vec3.scalar(color, 1/@intToFloat(f32, samples));
+            color = Vec3.init(@sqrt(color[0]), @sqrt(color[1]),@sqrt(color[2]));
+            var ir: u8 = @floatToInt(u8, 255.99*color[0]);
+            var ig: u8 = @floatToInt(u8, 255.99*color[1]);
+            var ib: u8 = @floatToInt(u8, 255.99*color[2]);
 
             print("{} {} {}\n", .{ir, ig, ib});
+            _ = c.SDL_SetRenderDrawColor(renderer, ir, ig, ib, 255);
+            _ = c.SDL_RenderDrawPoint(renderer, @intCast(c_int, col), @intCast(c_int,row));
         }
+        _ = c.SDL_RenderPresent(renderer);
     }
+    c.SDL_Delay(10000);
+
+    _ = c.SDL_RenderReadPixels(renderer, c.SDL_PIXELFORMAT_ARGB8888, 0, surface.*.pixels, surface.*.pitch);
+    _ = c.SDL_SaveBMP(surface, "image.bmp");
 }
 
 test "simple test" {

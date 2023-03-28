@@ -1,5 +1,5 @@
 const std = @import("std");
-const RndGen = std.rand.RndGen;
+const RndGen = std.rand.DefaultPrng;
 
 fn floatRand() f32 {
     var rand = RndGen.init(0);
@@ -7,59 +7,56 @@ fn floatRand() f32 {
     return if (rand.random().boolean()) x else - x; 
 }
 
-/// A struct to deal with 3-dimensional vectors and colors
-pub const Vec3 = struct {
-    x: f32 = 0,
-    y: f32 = 0,
-    z: f32 = 0,
-    
-    /// Constructor for a Vec3
-    pub fn init(x: f32, y: f32, z: f32) Vec3 {
-        return Vec3 {
-            .x = x,
-            .y = y,
-            .z = z,
-        };
-    }
+x: f32 = 0,
+y: f32 = 0,
+z: f32 = 0,
 
-    pub fn random() Vec3 {
-        return Vec3 {
-            .x = floatRand(),
-            .y = floatRand(),
-            .z = floatRand(),
-        };
-    }
+/// Constructor for a @Vector(3, f32)
+pub fn init(x: f32, y: f32, z: f32) @Vector(3, f32) {
+    return @Vector(3, f32) {
+        x,
+        y,
+        z,
+    };
+}
 
-    pub fn norm (self: Vec3) f32 {
-        return @sqrt(self.dot(self));
-    }
+pub fn random() @Vector(3, f32) {
+    return @Vector(3, f32) {
+        floatRand(),
+        floatRand(),
+        floatRand(),
+    };
+}
 
-    pub fn normalize (self: Vec3) Vec3 {
-        norm = self.norm;
-        return  if(norm == 0) 0 else self.scalar(1 / norm);
-    }
+pub fn norm (self: @Vector(3, f32)) f32 {
+    return dot(self, self);
+}
 
-    /// Implementation of dot product handling
-    pub fn dot(self: Vec3, other: Vec3) f32 {
-        return self.x * other.x + self.y * other.y + self.z * other.z;
-    }
+pub fn normalize (self: @Vector(3, f32)) @Vector(3, f32) {
+    var normal = norm(self);
+    return  if(normal == 0) .{0, 0, 0} else scalar(self, 1 / @sqrt(normal));
+}
 
-    /// Naive asf cross product function.
-    pub fn cross(self: Vec3, other: Vec3) Vec3 {
-        return Vec3 {
-            .x = self.y * other.z - self.z * other.y,
-            .y = self.z * other.x - self.x * other.z,
-            .z = self.x * other.y - self.y * other.x,
-        };
-    }
+/// Implementation of dot product handling
+pub fn dot(self: @Vector(3, f32), other: @Vector(3, f32)) f32 {
+    return self[0] * other[0] + self[1] * other[1] + self[2] * other[2];
+}
 
-    /// Scalar Multiplication doesn't exist in zig, who knew? 
-    /// We need it tho.
-    pub fn scalar(self: Vec3, num: f32) Vec3 {
-        return Vec3 {
-            .x = self.x * num,
-            .y = self.y * num,
-            .z = self.z * num,            
-        };
-    } 
-};
+/// Naive asf cross product function.
+pub fn cross(self: @Vector(3, f32), other: @Vector(3, f32)) @Vector(3, f32) {
+    return @Vector(3, f32) {
+        self[1] * other[2] - self[2] * other[1],
+        self[2] * other[0] - self[0] * other[2],
+        self[0] * other[1] - self[1] * other[0],
+    };
+}
+
+/// Scalar Multiplication doesn't exist in zig, who knew? 
+/// We need it tho.
+pub fn scalar(self: @Vector(3, f32), num: f32) @Vector(3, f32) {
+    return @Vector(3, f32) {
+        self[0] * num,
+        self[1] * num,
+        self[2] * num,            
+    };
+} 

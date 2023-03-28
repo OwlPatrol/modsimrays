@@ -1,33 +1,39 @@
 const std = @import("std");
 const rays = @import("rays.zig");
-const Vec3 = @import("vector.zig").Vec3;
-const Shape = @import("object.zig").Shape;
+const Vec3 = @import("vector.zig");
+const object = @import("object.zig");
+const Shape = object.Shape;
 const HitRecord = @import("hitrecord.zig").HitRecord;
 const Ray = rays.Ray;
 
-var object_list: []Shape = {};
+pub const Scene = struct {
 
-pub fn addObject(object:Shape) []Shape {
-    object_list = []Shape {object} ++ object_list;
-    return object_list;
-}
+    object_list: [2]Shape = .{
+        object.Shape.init(@Vector(3, f32) {0, 0, -1}, 0.5), 
+        object.Shape.init(@Vector(3, f32) {0, -100.5, -1.0}, 100),
+    },
 
-fn hit(ray: Ray, t_min: f32, t_max: f32, hit_rec: *HitRecord) bool {
-    var temp_rec: HitRecord = HitRecord{};
-    var is_hit = false;
-    var closest: f32 = t_max;
-
-    for (object_list) |shape| {
-        if(shape.hitShape(ray, t_min, closest, &temp_rec)) {
-            is_hit = true;
-            closest = temp_rec.t;
-            hit_rec.* = temp_rec;
-        }
+    pub fn addObject(self: Scene, thing:Shape) Scene {
+        var new_list = [_]Shape {thing} ++ self.object_list;
+        return Scene {.object_list = new_list};
     }
 
-    return is_hit;
-}
+    pub fn hit(self: Scene, ray: Ray, t_min: f32, t_max: f32, hit_rec: *HitRecord) bool {
+        var temp_rec: HitRecord = HitRecord{};
+        var is_hit = false;
+        var closest: f32 = t_max;
 
+        for (self.object_list) |shape| {
+            if(shape.hitShape(ray, t_min, closest, &temp_rec)) {
+                is_hit = true;
+                closest = temp_rec.t;
+                hit_rec.* = temp_rec;
+            }
+        }
+
+        return is_hit;
+    }
+};
 
 test "simple test" {
     var list = std.ArrayList(i32).init(std.testing.allocator);
