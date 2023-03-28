@@ -1,4 +1,5 @@
 const std = @import("std");
+const print = std.debug.print;
 const Scene = @import("scene.zig").Scene;
 const Vec3 = @import("vector.zig");
 const HitRecord = @import("hitrecord.zig").HitRecord;
@@ -29,11 +30,14 @@ pub const Ray = struct {
         if (depth == 0) return black;
         if (scene.hit(self, 0.001, std.math.floatMax(f32), &hit_rec)) {
             const target: @Vector(3, f32) = hit_rec.p + hit_rec.normal + Vec3.random();
-            return color(Ray.init(hit_rec.p, (target - hit_rec.p)), scene, depth - 1);
+            var sus = Vec3.scalar(color(Ray.init(hit_rec.p, (target - hit_rec.p)), scene, depth - 1), 0.5);
+            print("Hit\n", .{});
+            return sus;
         } else {
+            print("No hit", .{});
             var unit_dir: @Vector(3, f32) = Vec3.normalize(self.dir);
             var t: f32 = 0.5 * (unit_dir[1] + 1.0);
-            return Vec3.scalar(Vec3.init(0, 0, 0), 1 - t) + Vec3.scalar(Vec3.init(0.5, 0.7, 1.0), t);
+            return Vec3.scalar(Vec3.init(1, 1, 1), 1 - t) + Vec3.scalar(Vec3.init(0.5, 0.7, 1.0), t);
         }
     }
 };
