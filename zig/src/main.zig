@@ -54,9 +54,9 @@ pub fn main() !void {
 
             color = Vec3.scalar(color, 1/@intToFloat(f32, samples));
             color = Vec3.init(@sqrt(color[0]), @sqrt(color[1]),@sqrt(color[2]));
-            var ir: u8 = @floatToInt(u8, 255.99*color[0]);
-            var ig: u8 = @floatToInt(u8, 255.99*color[1]);
-            var ib: u8 = @floatToInt(u8, 255.99*color[2]);
+            var ir: u8 = @floatToInt(u8, 256*std.math.clamp(color[0],0,0.999));
+            var ig: u8 = @floatToInt(u8, 256*std.math.clamp(color[1],0,0.999));
+            var ib: u8 = @floatToInt(u8, 256*std.math.clamp(color[2],0,0.999));
 
             try file.writer().print("\n{} {} {}", .{ir, ig, ib});
 

@@ -37,9 +37,9 @@ pub const Sphere = struct {
 
     fn hit(self: Sphere, ray: Ray, t_min: f32, t_max: f32, hit_rec: *HitRecord) bool {
         const oc: @Vector(3, f32) = ray.origin - self.center;
-        const a = Vec3.norm(ray.dir);
+        const a = Vec3.dot(ray.dir, ray.dir);
         const b = Vec3.dot(oc, ray.dir);
-        const c = Vec3.norm(oc) - self.radius * self.radius;
+        const c = Vec3.dot(oc, oc) - self.radius * self.radius;
         const discriminant = b * b - a * c;
         if (discriminant > 0) {
             var temp = (b - @sqrt(discriminant)) / a;
