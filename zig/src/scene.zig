@@ -13,8 +13,8 @@ pub const Scene = struct {
     pub fn init() Scene {
         return Scene {
             .object_list =  .{
-                object.Shape.init(Vec3.init(0, 5, 1), 0.5), 
-                object.Shape.init(Vec3.init(0, -100.5, -1.0), 100),
+                object.Shape.init(Vec3.init(0, 100.5, -1.0), 100),
+                object.Shape.init(Vec3.init(0, -5, -1), 0.5), 
             },
         };
     }

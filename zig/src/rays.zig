@@ -25,11 +25,11 @@ pub const Ray = struct {
     }
 
     pub fn color(self: Ray, scene: Scene, depth: usize) @Vector(3, f32) {
-        var hit_rec = HitRecord {};
         if (depth == 0) return black;
+        var hit_rec = HitRecord {};
         if (scene.hit(self, 0.001, std.math.floatMax(f32), &hit_rec)) {
-            const target: @Vector(3, f32) = hit_rec.p + hit_rec.normal + Vec3.random();
-            return color(Ray.init(hit_rec.p, target - hit_rec.p), scene, depth - 1);
+            var target = hit_rec.p + hit_rec.normal + Vec3.random();
+            return Vec3.scalar(color(Ray.init(hit_rec.p, target - hit_rec.p), scene, depth - 1), 0.5);
         } else {
             var unit_dir: @Vector(3, f32) = Vec3.normalize(self.dir);
             var t: f32 = 0.5 * (unit_dir[1] + 1.0);

@@ -23,14 +23,14 @@ pub fn main() !void {
     const samples: usize = 100;
     const max_depth = 50;
 
-    // _ = c.SDL_Init(c.SDL_INIT_VIDEO);
-    //defer c.SDL_Quit();
-//
-    //const window = c.SDL_CreateWindow("SDL2 Example", c.SDL_WINDOWPOS_UNDEFINED, c.SDL_WINDOWPOS_UNDEFINED, width, height, c.SDL_WINDOW_SHOWN);
-    //defer c.SDL_DestroyWindow(window);
-//
-    //const renderer = c.SDL_CreateRenderer(window, -1, 0);
-    //defer c.SDL_DestroyRenderer(renderer);
+     _ = c.SDL_Init(c.SDL_INIT_VIDEO);
+    defer c.SDL_Quit();
+
+    const window = c.SDL_CreateWindow("SDL2 Example", c.SDL_WINDOWPOS_UNDEFINED, c.SDL_WINDOWPOS_UNDEFINED, width, height, c.SDL_WINDOW_SHOWN);
+    defer c.SDL_DestroyWindow(window);
+
+    const renderer = c.SDL_CreateRenderer(window, -1, 0);
+    defer c.SDL_DestroyRenderer(renderer);
 
 
     var cam = Camera.init();
@@ -38,8 +38,8 @@ pub fn main() !void {
 
     try file.writer().print("P3\n{} {}\n255\n", .{width, height});
     
-    //const surface = c.SDL_CreateRGBSurface(0, width, height, 32, 0, 0, 0, 0);
-    //defer c.SDL_FreeSurface(surface);
+    const surface = c.SDL_CreateRGBSurface(0, width, height, 32, 0, 0, 0, 0);
+    defer c.SDL_FreeSurface(surface);
 
     for (0..height) |row| {
         for (0..width) |col| {
@@ -48,7 +48,6 @@ pub fn main() !void {
                 var u: f32 = (@intToFloat(f32, col) + rand.random().float(f32)) / @as(f32, width);
                 var v: f32 = (@intToFloat(f32, row) + rand.random().float(f32)) / @as(f32, height);
                 var ray: Ray = cam.getRay(u, v);
-                _ = ray.pointsAt(2.0); // Why?
                 color += ray.color(sim_scene, max_depth);
             }
 
@@ -60,14 +59,14 @@ pub fn main() !void {
 
             try file.writer().print("\n{} {} {}", .{ir, ig, ib});
 
-            //_ = c.SDL_SetRenderDrawColor(renderer, ir, ig, ib, 255);
-            //_ = c.SDL_RenderDrawPoint(renderer, @intCast(c_int, col), @intCast(c_int,row));
+            _ = c.SDL_SetRenderDrawColor(renderer, ir, ig, ib, 255);
+            _ = c.SDL_RenderDrawPoint(renderer, @intCast(c_int, col), @intCast(c_int,row));
         }
-        //_ = c.SDL_RenderPresent(renderer);
+        _ = c.SDL_RenderPresent(renderer);
     }
-    //c.SDL_Delay(10000);
-    //_ = c.SDL_RenderReadPixels(renderer, c.SDL_PIXELFORMAT_ARGB8888, 0, surface.*.pixels, surface.*.pitch);
-    //_ = c.SDL_SaveBMP(surface, "image.bmp");
+    c.SDL_Delay(10000);
+    _ = c.SDL_RenderReadPixels(renderer, c.SDL_PIXELFORMAT_ARGB8888, 0, surface.*.pixels, surface.*.pitch);
+    _ = c.SDL_SaveBMP(surface, "image.bmp");
 }
 
 test "simple test" {

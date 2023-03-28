@@ -41,23 +41,19 @@ pub const Sphere = struct {
         const b = Vec3.dot(oc, ray.dir);
         const c = Vec3.dot(oc, oc) - self.radius * self.radius;
         const discriminant = b * b - a * c;
-        if (discriminant > 0) {
-            var temp = (b - @sqrt(discriminant)) / a;
-            if (temp > t_min and temp < t_max) {
-                hit_rec.*.t = temp;
-                hit_rec.*.p = ray.pointsAt(temp);
-                hit_rec.*.normal = Vec3.scalar(hit_rec.p - self.center, 1 / self.radius);
-                return true;
-            }
-            temp = (b + @sqrt(discriminant)) / a;
-            if (temp > t_min and temp < t_max) {
-                hit_rec.*.t = temp;
-                hit_rec.*.p = ray.pointsAt(temp);
-                hit_rec.*.normal = Vec3.scalar((hit_rec.p - self.center), 1 / self.radius);
-                return true;
-            }
+        if (discriminant < 0) return false;
+        var sqrtd = @sqrt(discriminant);
+
+        var root = (-b - sqrtd)/a;
+        if (root < t_min or t_max < root) {
+            root = (-b + sqrtd) / a;
+            if(root < t_min or t_max < root) return false;
         }
-        return false;
+
+        hit_rec.*.p = ray.pointsAt(hit_rec.*.t);
+        var norm = Vec3.scalar(hit_rec.*.p - self.center, 1 / self.radius);
+        hit_rec.*.normal = norm;
+        return true;
     }
 };
 
