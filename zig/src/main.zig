@@ -27,7 +27,7 @@ pub fn main() !void {
 
     // Samples per pixel
     const samples: usize = 100;
-    const max_depth = 5;
+    const max_depth = 10;
 
     var cam = Camera.init();
     var sim_scene = scene {
