@@ -33,8 +33,8 @@ pub const HittableList = struct {
         var recpointer: *HitRecord = &temp_rec;
         var hit_anything: bool = false;
         var closest = t_max;
-
-        for (self.objects.allocatedSlice()) |object| {
+        for (self.objects.items) |object| {
+            //std.debug.print("{}\n", .{object});
             if (object.hit(ray, t_min, t_max, recpointer)) {
                 hit_anything = true;
                 closest = temp_rec.t;
