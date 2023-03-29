@@ -6,9 +6,11 @@ const point = Vec3.init;
 
 fn rayColor(ray: Ray) @Vector(3, f32) {
     const unit_dir = Vec3.normalize(ray.dir);
-    var t = 0.5 * (unit_dir[1] + 1);
+    var t = 0.5 * (-unit_dir[1] + 1);
     return Vec3.scalar(Vec3.init(1,1,1), (1 - t)) + Vec3.scalar(Vec3.init(0.5, 0.7, 1.0), t);
 }
+
+
 
 pub fn main() !void {
     // Image
