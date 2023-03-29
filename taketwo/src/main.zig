@@ -10,22 +10,9 @@ fn rayColor(ray: Ray) @Vector(3, f32) {
         const n = Vec3.normalize(ray.at(t) - point(0, 0, -1));
         return Vec3.scalar(n + point(1, 1, 1), 0.5);
     } else {
-        const unit_dir = Vec3.normalize(ray.dir);
+        const unit_dir = Vec3.div(ray.dir, Vec3.length(ray.dir));
         t = 0.5 * (-unit_dir[1] + 1);
         return Vec3.scalar(Vec3.init(1,1,1), (1 - t)) + Vec3.scalar(Vec3.init(0.5, 0.7, 1.0), t);
-    }
-}
-
-pub fn hitSphere(center: @Vector(3,f32), radius: f32, r: Ray) f32 {
-    var oc = r.origin - center;
-    var a = Vec3.dot(r.dir, r.dir);
-    var b = 2 * Vec3.dot(oc, r.dir);
-    var c = Vec3.dot(oc, oc) - radius*radius;
-    var discriminant =  b*b - 4*a*c;
-    if(discriminant < 0) {
-        return -1.0;
-    } else {
-        return(-b - @sqrt(discriminant)) / (2*a);
     }
 }
 

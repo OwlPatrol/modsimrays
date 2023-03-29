@@ -30,7 +30,7 @@ pub fn random() Vec3 {
 }
 
 pub fn norm (self: Vec3) f32 {
-    return (dot(self, self));
+    return self[0]*self[0] + self[1]*self[1] + self[2]*self[2];
 }
 
 pub fn length (self: Vec3) f32 {
@@ -38,7 +38,7 @@ pub fn length (self: Vec3) f32 {
 }
 
 pub fn normalize (self: Vec3) Vec3 {
-    return div(self, @sqrt(dot(self, self)));
+    return div(self, length(self));
 }
 
 /// Implementation of dot product handling
