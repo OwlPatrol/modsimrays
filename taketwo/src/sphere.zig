@@ -5,7 +5,7 @@ const HitRecord = @import("hitRecord.zig").HitRecord;
 const point = Vec3.init;
 
 
-const Sphere = struct {
+pub const Sphere = struct {
     center: @Vector(3, f32),
     radius: f32,
 
@@ -13,8 +13,8 @@ const Sphere = struct {
         return Sphere {.center = center, .radius = radius};
     }
 
-    pub fn hit(self: Sphere, ray: *Ray, t_min: f32, t_max: f32, rec: *HitRecord) bool {
-        const oc = ray.*.origin - self.center;
+    pub fn hit(self: Sphere, ray: Ray, t_min: f32, t_max: f32, rec: *HitRecord) bool {
+        const oc = ray.origin - self.center;
         const a = Vec3.norm(ray.dir);
         const b = Vec3.dot(oc, ray.dir);
         const c = Vec3.norm(oc) - self.radius*self.radius;
@@ -29,7 +29,9 @@ const Sphere = struct {
             if (root < t_min or t_max < root) return false;
         }
         rec.*.t = root;
-        rec.*.p = ray.*.at(rec.*.t);
-        rec.*.normal = (rec.*.p - self.center) / self.radius;
+        rec.*.p = ray.at(rec.*.t);
+        var out_normal = Vec3.div((rec.*.p - self.center), self.radius);
+        rec.set_face_normal(ray, out_normal);
+        return true;
     }
 };
