@@ -4,8 +4,7 @@ const Vec3 = @Vector(3, f32);
 
 fn floatRand() f32 {
     var rand = RndGen.init(0);
-    var x = rand.random().float(f32);
-    return if (rand.random().boolean()) x else - x; 
+    return rand.random().float(f32);
 }
 
 x: f32 = 0,
