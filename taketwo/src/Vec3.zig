@@ -2,9 +2,9 @@ const std = @import("std");
 const RndGen = std.rand.DefaultPrng;
 const Vec3 = @Vector(3, f32);
 
-fn floatRand() f32 {
+fn floatRand(min: f32, max: f32) f32 {
     var rand = RndGen.init(0);
-    return rand.random().float(f32);
+    return min + (min - max) * rand.random().float(f32);
 }
 
 x: f32 = 0,
@@ -20,12 +20,18 @@ pub fn init(x: f32, y: f32, z: f32) Vec3 {
     };
 }
 
-pub fn random() Vec3 {
+pub fn random(min:f32, max:f32) Vec3 {
     return Vec3 {
-        floatRand(),
-        floatRand(),
-        floatRand(),
+        floatRand(min, max),
+        floatRand(min, max),
+        floatRand(min, max),
     };
+}
+
+pub fn randomUnitVector() Vec3 {
+    var p = init(0,0,0);
+    while (length(p) >= 1) p = random(-1, 1);
+    return p;
 }
 
 pub fn norm (self: Vec3) f32 {

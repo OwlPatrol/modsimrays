@@ -2,9 +2,17 @@ const Vec3 = @import("Vec3.zig");
 const std = @import("std");
 const color = Vec3.init();
 
+//pub fn printColor(writer: anytype, col: @Vector(3, f32), samples: f32) !void {
+//    var temp = Vec3.div(col, samples);
+//    try writer.print("{} {} {}\n", .{@floatToInt(u8, multiSample(@sqrt(temp[0]))), @floatToInt(u8, multiSample(@sqrt(temp[1]))), @floatToInt(u8, multiSample(@sqrt(temp[2])))});
+//}
+
 pub fn printColor(writer: anytype, col: @Vector(3, f32), samples: f32) !void {
-    var temp = Vec3.div(col, samples);
-    try writer.print("{} {} {}\n", .{@floatToInt(u8, multiSample(temp[0])), @floatToInt(u8, multiSample(temp[1])), @floatToInt(u8, multiSample(temp[2]))});
+    var scale = 1 / samples;
+    var r = @floatToInt(u8, multiSample(col[0]*scale));
+    var g = @floatToInt(u8, multiSample(col[1]*scale));
+    var b = @floatToInt(u8, multiSample(col[2]*scale));
+    try writer.print("{} {} {}\n", .{r, g, b});
 }
 
 fn clamp(x: f32, min: f32, max: f32) f32 {

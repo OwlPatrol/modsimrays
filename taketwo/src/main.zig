@@ -19,10 +19,13 @@ fn floatRandRange(min: f32, max: f32) f32 {
     return min + (max-min)*floatRand();
 }
 
-fn rayColor(ray: Ray, scene: *HittableList) @Vector(3, f32) {
+fn rayColor(ray: Ray, scene: *HittableList, depth: usize) @Vector(3, f32) {
+    if(depth <= 0) return black;
+
     var rec = HitRecord.init();
     if(scene.hit(ray, 0, std.math.floatMax(f32), &rec)) {
-        return Vec3.scalar(rec.normal + point(1, 1, 1), 0.5);
+        const target = rec.p + rec.normal + Vec3.randomUnitVector();
+        return Vec3.scalar(rayColor(Ray.init(rec.p, target - rec.p), scene, depth - 1), 0.5);
     } 
     const unit_dir = Vec3.normalize(ray.dir);
     var t = 0.5 * (unit_dir[1] + 1);
@@ -34,7 +37,8 @@ pub fn main() !void {
     const aspect_ratio = 16.0/9.0;
     const width = 1000;
     const height = @floatToInt(usize, (@intToFloat(f32, width) / aspect_ratio));
-    const samples = 100; 
+    const samples = 50; 
+    const max_depth = 20;
 
     // World
     // Allocator needed for the ArrayList
@@ -58,10 +62,10 @@ pub fn main() !void {
         for (0..width) |col| {
             var pixel_color = black;
             for (0..samples) |_| {
-                const u = (@intToFloat(f32, col)+floatRand())/@intToFloat(f32, width);
-                const v = (@intToFloat(f32, row)+floatRand())/@intToFloat(f32, height);
+                const u = (@intToFloat(f32, col)+floatRand())/@intToFloat(f32, width-1);
+                const v = (@intToFloat(f32, row)+floatRand())/@intToFloat(f32, height-1);
                 const r = cam.getRay(u, v);
-                pixel_color += rayColor(r, &scene);
+                pixel_color += rayColor(r, &scene, max_depth);
             }
             try color.printColor(file.writer(), pixel_color, samples);
         }
