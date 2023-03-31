@@ -8,16 +8,11 @@ const Ray = rays.Ray;
 
 pub const Scene = struct {
 
-    object_list: [2]Shape,
+    object_list: [2]object.Shape = undefined,
 
-    pub fn init() Scene {
-        return Scene {
-            .object_list =  .{
-                object.Shape.init(Vec3.init(0, -100.5, -1.0), 100),
-                object.Shape.init(Vec3.init(0.5, 1, -1), 0.5), 
-                //object.Shape.init(Vec3.init(0, 0, 0), 0),
-            },
-        };
+    pub fn addObject(self: Scene, thing:Shape) Scene {
+        var new_list = [_]Shape {thing} ++ self.object_list;
+        return Scene {.object_list = new_list};
     }
 
     pub fn hit(self: Scene, ray: Ray, t_min: f32, t_max: f32, hit_rec: *HitRecord) bool {

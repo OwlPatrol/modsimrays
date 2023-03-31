@@ -1,12 +1,14 @@
-const Vec = @import("vector.zig");
+
+const Vec3 = @import("vector.zig");
+
 const Ray = @import("rays.zig").Ray;
 const Vec3 = @Vector(3, f32);
 
 pub const Camera = struct {
-    lower_left: Vec3,
-    horizontal: Vec3,
-    vertical: Vec3,
-    origin: Vec3,
+    lower_left: @Vector(3,f32),
+    horizontal: @Vector(3,f32),
+    vertical: @Vector(3,f32),
+    origin: @Vector(3,f32),
 
     pub fn init() Camera {
         return Camera {
@@ -21,8 +23,12 @@ pub const Camera = struct {
         return 
         Ray.init
         (
-            self.origin, 
-            self.lower_left + Vec.scalar(self.horizontal,u) + Vec.scalar(self.vertical, v) - self.origin
+            self.origin,      
+            self.lower_left 
+            + Vec3.scalar(self.horizontal, u) 
+            + Vec3.scalar(self.vertical, v) 
+            - self.origin
+
         );
     }
     
