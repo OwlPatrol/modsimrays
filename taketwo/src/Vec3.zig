@@ -30,11 +30,15 @@ pub fn random(min:f32, max:f32) Vec3 {
     };
 }
 
-pub fn randomUnitVector() Vec3 {
+pub fn randomInUnitSphere() Vec3 {
     var p = random(-1, 1);
     //std.debug.print("{}\n", .{p});
     while (length(p) >= 1) p = random(-1, 1);
     return p;
+}
+
+pub fn randomUnitVector() Vec3 {
+    return normalize(random(-1,1));
 }
 
 pub fn norm (self: Vec3) f32 {
