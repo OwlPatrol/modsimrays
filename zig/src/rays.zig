@@ -3,7 +3,9 @@ const Scene = @import("scene.zig").Scene;
 const Vec3 = @import("vector.zig");
 const HitRecord = @import("hitrecord.zig").HitRecord;
 
-const black = @Vector(3,f32){0,0,0};
+
+const black = Vec3.init(0, 0, 0);
+
 
 /// A Ray has a direction vector and a starting point.
 pub const Ray = struct {

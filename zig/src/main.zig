@@ -12,6 +12,7 @@ const Vec3 = @import("vector.zig");
 const Camera = @import("camera.zig").Camera;
 
 pub fn main() !void {
+
     var rand = RndGen.init(0);
     const width: usize = 1680;
     const height: usize = 980;
@@ -38,12 +39,17 @@ pub fn main() !void {
             };
     print("{}",.{sim_scene.object_list[1]});
 
-    print("P3\n{} \n255\n{}", .{width, height});
+
+    // ppm file gen
+    var file = try std.fs.cwd().createFile("output.ppm",  .{});
+    defer file.close();
+    try file.writer().print("P3\n{} {}\n255\n", .{width, height});
 
     const surface = c.SDL_CreateRGBSurface(0, width, height, 32, 0, 0, 0, 0);
     defer c.SDL_FreeSurface(surface);
     for (0..height) |row| {
         for (0..width) |col| {
+
             var color = Vec3.init(0,0,0);
             for (0..samples) |_| {
                 var u: f32 = (@intToFloat(f32, col) + rand.random().float(f32)) / @intToFloat(f32, width);
@@ -63,6 +69,7 @@ pub fn main() !void {
             var ir: u8 = @floatToInt(u8, 255.99*color[0]);
             var ig: u8 = @floatToInt(u8, 255.99*color[1]);
             var ib: u8 = @floatToInt(u8, 255.99*color[2]);
+
             _ = c.SDL_SetRenderDrawColor(renderer, ir, ig, ib, 255);
             _ = c.SDL_RenderDrawPoint(renderer, @intCast(c_int, col), @intCast(c_int,row));
         }

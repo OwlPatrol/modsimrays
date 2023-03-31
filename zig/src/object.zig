@@ -37,6 +37,7 @@ pub const Sphere = struct {
 
     fn hit(self: Sphere, ray: Ray, t_min: f32, t_max: f32, hit_rec: *HitRecord) bool {
         const oc: @Vector(3, f32) = ray.origin - self.center;
+
         const a = Vec3.norm(ray.dir);
         const b = Vec3.dot(oc, ray.dir);
         const c = Vec3.norm(oc) - self.radius * self.radius;
@@ -56,8 +57,13 @@ pub const Sphere = struct {
                 hit_rec.*.normal = Vec3.scalar((hit_rec.p - self.center), 1 / self.radius);
                 return true;
             }
+
         }
-        return false;
+
+        hit_rec.*.p = ray.pointsAt(hit_rec.*.t);
+        var norm = Vec3.scalar(hit_rec.*.p - self.center, 1 / self.radius);
+        hit_rec.setFaceNormal(ray, norm);
+        return true;
     }
 };
 
