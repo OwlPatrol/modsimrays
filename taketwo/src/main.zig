@@ -23,7 +23,7 @@ fn rayColor(ray: Ray, scene: *HittableList, depth: usize) @Vector(3, f32) {
     if(depth <= 0) return black;
 
     var rec = HitRecord.init();
-    if(scene.hit(ray, 0, std.math.floatMax(f32), &rec)) {
+    if(scene.hit(ray, 0.0001, std.math.floatMax(f32), &rec)) {
         const target = rec.p + rec.normal + Vec3.randomUnitVector();
         return Vec3.scalar(rayColor(Ray.init(rec.p, target - rec.p), scene, depth - 1), 0.5);
     } 
@@ -37,8 +37,8 @@ pub fn main() !void {
     const aspect_ratio = 16.0/9.0;
     const width = 1000;
     const height = @floatToInt(usize, (@intToFloat(f32, width) / aspect_ratio));
-    const samples = 50; 
-    const max_depth = 20;
+    const samples = 100; 
+    const max_depth = 50;
 
     // World
     // Allocator needed for the ArrayList
@@ -59,6 +59,7 @@ pub fn main() !void {
 
     var row = height;
     while (row > 0):(row -= 1) {
+        std.debug.print("There are {} rows left to print \n", .{row});
         for (0..width) |col| {
             var pixel_color = black;
             for (0..samples) |_| {

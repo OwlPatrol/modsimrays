@@ -22,5 +22,5 @@ fn clamp(x: f32, min: f32, max: f32) f32 {
 }
 
 fn multiSample(x: f32) f32 {
-    return 256 * clamp(x, 0, 0.999);
+    return 256 * clamp(@sqrt(x), 0, 0.999);
 }

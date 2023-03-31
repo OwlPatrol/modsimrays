@@ -1,10 +1,12 @@
 const std = @import("std");
 const RndGen = std.rand.DefaultPrng;
 const Vec3 = @Vector(3, f32);
+const time = std.time;
 
 fn floatRand(min: f32, max: f32) f32 {
     var rand = RndGen.init(0);
-    return min + (min - max) * rand.random().float(f32);
+    rand.seed(@intCast(u64, time.nanoTimestamp()));
+    return min + (max - min) * rand.random().float(f32);
 }
 
 x: f32 = 0,
@@ -29,7 +31,8 @@ pub fn random(min:f32, max:f32) Vec3 {
 }
 
 pub fn randomUnitVector() Vec3 {
-    var p = init(0,0,0);
+    var p = random(-1, 1);
+    //std.debug.print("{}\n", .{p});
     while (length(p) >= 1) p = random(-1, 1);
     return p;
 }
