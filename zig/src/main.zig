@@ -5,7 +5,7 @@ const c =
         @cInclude("SDL.h");
         });
 const RndGen = std.rand.DefaultPrng;
-const Ray = @import("rays.zig").Ray;
+const Ray = @import("rays.zig").Ray; 
 const scene = @import("scene.zig").Scene;
 const object = @import("object.zig");
 const Vec3 = @import("vector.zig");

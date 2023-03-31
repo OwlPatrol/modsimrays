@@ -9,11 +9,16 @@ const RndGen = std.rand.DefaultPrng;
 const Camera = @import("camera.zig").Camera;
 const point = Vec3.init;
 const black = Vec3.init(0,0,0);
+const c = 
+    @cImport({
+        @cInclude("SDL.h");
+        });
+
 
 fn floatRand() f32 {
     var rand = RndGen.init(0);
     return rand.random().float(f32);
-}
+} 
 
 fn floatRandRange(min: f32, max: f32) f32 {
     return min + (max-min)*floatRand();
@@ -40,6 +45,16 @@ pub fn main() !void {
     const samples = 100; 
     const max_depth = 50;
 
+    // Render
+    _ = c.SDL_Init(c.SDL_INIT_VIDEO);
+    defer c.SDL_Quit();
+
+    const window = c.SDL_CreateWindow("SDL2 Example", c.SDL_WINDOWPOS_UNDEFINED, c.SDL_WINDOWPOS_UNDEFINED, width, height, c.SDL_WINDOW_SHOWN);
+    defer c.SDL_DestroyWindow(window);
+
+    const renderer = c.SDL_CreateRenderer(window, -1, 0);
+    defer c.SDL_DestroyRenderer(renderer);
+
     // World
     // Allocator needed for the ArrayList
     var alloc = std.heap.page_allocator;
@@ -57,6 +72,9 @@ pub fn main() !void {
     defer file.close();
     try file.writer().print("P3\n{} {}\n255\n", .{width, height});
 
+    const surface = c.SDL_CreateRGBSurface(0, width, height, 32, 0, 0, 0, 0);
+    defer c.SDL_FreeSurface(surface);
+
     var row = height;
     while (row > 0):(row -= 1) {
         std.debug.print("There are {} rows left to print \n", .{row});
@@ -69,8 +87,14 @@ pub fn main() !void {
                 pixel_color += rayColor(r, &scene, max_depth);
             }
             try color.printColor(file.writer(), pixel_color, samples);
+            try color.renderColor(renderer, pixel_color, samples, col, row);
         }
+        _ = c.SDL_RenderPresent(renderer);
     }
+    c.SDL_Delay(10000);
+
+    _ = c.SDL_RenderReadPixels(renderer, c.SDL_PIXELFORMAT_ARGB8888, 0, surface.*.pixels, surface.*.pitch);
+    _ = c.SDL_SaveBMP(surface, "image.bmp");
 }
 
 test "simple test" {

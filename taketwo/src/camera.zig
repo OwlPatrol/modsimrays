@@ -10,7 +10,7 @@ const focal_length = 1;
 
 const orig = Vec3.init(0, 0, 0);
 const horiz = Vec3.init(width, 0, 0);
-const vert = Vec3.init(0, height, 0);
+const vert = Vec3.init(0, -height, 0);
 const low_left = orig - Vec3.div(horiz, 2) - Vec3.div(vert, 2) - Vec3.init(0, 0, focal_length);
 
 pub const Camera = struct {

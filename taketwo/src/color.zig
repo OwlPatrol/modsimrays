@@ -1,6 +1,9 @@
 const Vec3 = @import("Vec3.zig");
 const std = @import("std");
-const color = Vec3.init();
+const color = Vec3.init();const c = 
+    @cImport({
+        @cInclude("SDL.h");
+        });
 
 //pub fn printColor(writer: anytype, col: @Vector(3, f32), samples: f32) !void {
 //    var temp = Vec3.div(col, samples);
@@ -14,6 +17,16 @@ pub fn printColor(writer: anytype, col: @Vector(3, f32), samples: f32) !void {
     var b = @floatToInt(u8, multiSample(col[2]*scale));
     try writer.print("{} {} {}\n", .{r, g, b});
 }
+
+pub fn renderColor(renderer: anytype, colour: @Vector(3, f32), samples: f32, col:usize, row:usize) !void {
+    var scale = 1 / samples;
+    var r = @floatToInt(u8, multiSample(colour[0]*scale));
+    var g = @floatToInt(u8, multiSample(colour[1]*scale));
+    var b = @floatToInt(u8, multiSample(colour[2]*scale));
+     _ = c.SDL_SetRenderDrawColor(renderer, r, g, b, 255);
+    _ = c.SDL_RenderDrawPoint(renderer, @intCast(c_int, col), @intCast(c_int,row));
+}
+
 
 fn clamp(x: f32, min: f32, max: f32) f32 {
     if (x < min) return min;
