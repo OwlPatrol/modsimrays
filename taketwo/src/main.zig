@@ -7,8 +7,10 @@ const HittableList = @import("hitlist.zig").HittableList;
 const Sphere = @import("sphere.zig").Sphere;
 const RndGen = std.rand.DefaultPrng;
 const Camera = @import("camera.zig").Camera;
+const Material = @import("materials.zig").Material;
 const point = Vec3.init;
 const black = Vec3.init(0,0,0);
+const zeroVec = black;
 
 fn floatRand() f32 {
     var rand = RndGen.init(0);
@@ -24,8 +26,13 @@ fn rayColor(ray: Ray, scene: *HittableList, depth: usize) @Vector(3, f32) {
 
     var rec = HitRecord.init();
     if(scene.hit(ray, 0.0001, std.math.floatMax(f32), &rec)) {
-        const target = rec.p + rec.normal + Vec3.randomUnitVector();
-        return Vec3.scalar(rayColor(Ray.init(rec.p, target - rec.p), scene, depth - 1), 0.5);
+        var scattered = Ray.init(zeroVec, zeroVec); // ??????
+        var attenuation = black;
+        if(rec.material.*.scatter(ray, &rec, &attenuation, &scattered))
+            return attenuation*rayColor(scattered, scene, depth - 1);
+        return black;
+        // const target = rec.p + rec.normal + Vec3.randomInHemisphere(rec.normal);
+        // return Vec3.scalar(rayColor(Ray.init(rec.p, target - rec.p), scene, depth - 1), 0.5);
     } 
     const unit_dir = Vec3.normalize(ray.dir);
     var t = 0.5 * (unit_dir[1] + 1);
@@ -45,8 +52,17 @@ pub fn main() !void {
     var alloc = std.heap.page_allocator;
     var scene = HittableList.init(alloc);
     defer scene.destroy();
-    try scene.add(Sphere.init(.{0, -100.5, -1.0}, 100));
-    try scene.add(Sphere.init(.{0, 0, -1}, 0.5));
+
+
+    const material_ground = Material.makeLambertian(Vec3.init(0.8, 0.8, 0.0));
+    const material_center = Material.makeLambertian(Vec3.init(0.7, 0.3, 0.3));
+    const material_left   = Material.makeMetal(Vec3.init(0.8, 0.8, 0.8));
+    const material_right  = Material.makeMetal(Vec3.init(0.8, 0.6, 0.2));
+
+    try scene.add(Sphere.init(.{0, -100.5,  -1},    100, &material_ground));
+    try scene.add(Sphere.init(.{0,  0,      -1},    0.5, &material_center));
+    try scene.add(Sphere.init(.{-1, 0,      -1},    0.5, &material_left));
+    try scene.add(Sphere.init(.{1,  0,      -1},    0.5, &material_right));
     //std.debug.print("{}", .{scene.objects});
 
     // Camera

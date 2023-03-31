@@ -1,17 +1,22 @@
 const std = @import("std");
 const Ray = @import("ray.zig").Ray;
 const Vec3 = @import("Vec3.zig");
+const Material = @import("materials.zig").Material;
 
 pub const HitRecord = struct {
     p: @Vector(3, f32),
     normal: @Vector(3, f32),
+    material: *const Material, // Could become issue
     t: f32,
     front_face: bool,
+
+    //TODO!! 9.2, pointer to materials
 
     pub fn init() HitRecord {
         return HitRecord {
             .p = Vec3.init(0, 0, 0),
             .normal = Vec3.init(0, 0, 0),
+            .material = *const Material {.lambertian = undefined, .metal = undefined},
             .t = 0,
             .front_face = true,
         };

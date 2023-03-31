@@ -41,6 +41,12 @@ pub fn randomUnitVector() Vec3 {
     return normalize(random(-1,1));
 }
 
+pub fn randomInHemisphere(normal: Vec3) Vec3 {
+    const in_unit_sphere: Vec3 = randomInUnitSphere();
+    if(dot(in_unit_sphere, normal)>0) return in_unit_sphere;
+    return -in_unit_sphere;
+}
+
 pub fn norm (self: Vec3) f32 {
     return self[0]*self[0] + self[1]*self[1] + self[2]*self[2];
 }
@@ -87,4 +93,13 @@ pub fn div(self: Vec3, num: f32) Vec3 {
 
 pub fn toInt(comptime T: type, self: Vec3) @Vector(3, T) {
     return .{@floatToInt(T, self[0]), @floatToInt(T, self[1]), @floatToInt(T, self[2])};
+}
+
+pub fn nearZero(self: Vec3) bool {
+    const s: f32 = 1e-8;
+    return self[0] > s and self[1] > s and self[2] > s;
+}
+
+pub fn reflect(v: Vec3, n: Vec3) Vec3 { // Potential issue
+    return v - scalar(dot(v,n)*n, 2); 
 }
