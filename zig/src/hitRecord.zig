@@ -10,8 +10,6 @@ pub const HitRecord = struct {
     t: f32,
     front_face: bool,
 
-    //TODO!! 9.2, pointer to materials
-
     pub fn init() HitRecord {
         return HitRecord {
             .p = Vec3.init(0, 0, 0),

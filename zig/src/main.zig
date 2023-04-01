@@ -41,30 +41,30 @@ fn rayColor(ray: Ray, scene: *HittableList, depth: usize) @Vector(3, f32) {
 }
 
 pub fn main() !void {
-    // Image
+    // Image specs
     const aspect_ratio = 16.0/9.0;
     const width = 1000;
     const height = @floatToInt(usize, (@intToFloat(f32, width) / aspect_ratio));
     const samples = 200; 
-    const max_depth = 50;
+    const max_depth = 100;
 
-    // World
-    // Allocator needed for the ArrayList
+    // World Initialization
+    // This Allocator is needed for the ArrayList in HittableList, since Zig otherwise can't deal with lists that grow in size easily
     var alloc = std.heap.page_allocator;
     var scene = HittableList.init(alloc);
-    defer scene.destroy();
+    defer scene.destroy(); // Defer this to happen at the closing bracket of the main functionWS
 
 
+    // Initialize the values for the materials. 
     const material_ground = Material.makeLambertian(Vec3.init(0.8, 0.8, 0.0));
     const material_center = Material.makeLambertian(Vec3.init(0.7, 0.3, 0.3));
-    const material_left   = Material.makeMetal(Vec3.init(0.8, 0.8, 0.8));
-    const material_right  = Material.makeMetal(Vec3.init(0.8, 0.6, 0.2));
-
+    const material_left   = Material.makeMetal(Vec3.init(0.8, 0.8, 0.8), 0.3);
+    const material_right  = Material.makeMetal(Vec3.init(0.8, 0.6, 0.2), 1.0);
+    // Place the objects. Since they are equally far away from the camera on the z-axis it's important that we place the one we want closest to us last in the list.
     try scene.add(Sphere.init(.{0, -100.5,  -1},    100, material_ground));
     try scene.add(Sphere.init(.{-1, 0,      -1},    0.5, material_left));
     try scene.add(Sphere.init(.{1,  0,      -1},    0.5, material_right));
     try scene.add(Sphere.init(.{0,  0,      -1},    0.5, material_center));
-    //std.debug.print("{}", .{scene.objects});
 
     // Camera
     var cam = Camera.init();
@@ -79,12 +79,13 @@ pub fn main() !void {
     defer c.SDL_DestroyWindow(window);
     const renderer = c.SDL_CreateRenderer(window, -1, 0);
     defer c.SDL_DestroyRenderer(renderer);
-    const surface = c.SDL_CreateRGBSurface(0, width, height, 32, 0, 0, 0, 0);
-    defer c.SDL_FreeSurface(surface);
-
+   
+    // Main loop
     var row = height;
     while (row > 0):(row -= 1) {
         for (0..width) |col| {
+
+
             var pixel_color = black;
             for (0..samples) |_| {
                 const u = (@intToFloat(f32, col)+floatRand())/@intToFloat(f32, width-1);
@@ -92,17 +93,10 @@ pub fn main() !void {
                 const r = cam.getRay(u, v);
                 pixel_color += rayColor(r, &scene, max_depth);
             }
-            try color.printColor(file.writer(), pixel_color, samples);
-            try color.renderColor(renderer, pixel_color, samples, col, height - row);
+           try color.renderColor(renderer, file.writer(), pixel_color, samples, col, height - row);
         }
         _ = c.SDL_RenderPresent(renderer);
-    }   
-    _ = c.SDL_RenderPresent(renderer);
+    }
     c.SDL_Delay(10000);
-    std.debug.print("Hiya! {?} {*}\n",.{surface.*.pixels, surface});
-    _ = c.SDL_RenderReadPixels(renderer, c.SDL_PIXELFORMAT_ARGB8888, 0, surface.*.pixels, surface.*.pitch);
-    std.debug.print("Hi again\n",.{});
-    _ = c.SDL_SaveBMP(surface, "image.bmp");
-    std.debug.print("Goodbye!\n",.{});
 }
 
