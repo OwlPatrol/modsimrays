@@ -57,8 +57,8 @@ pub fn main() !void {
 
     // Initialize the values for the materials. 
     const material_ground = Material.makeLambertian(Vec3.init(0.8, 0.8, 0.0));
-    const material_center = Material.makeLambertian(Vec3.init(0.7, 0.3, 0.3));
-    const material_left   = Material.makeMetal(Vec3.init(0.8, 0.8, 0.8), 0.3);
+    const material_center = Material.makeDialectric(1.5);
+    const material_left   = Material.makeDialectric(1.5);
     const material_right  = Material.makeMetal(Vec3.init(0.8, 0.6, 0.2), 1.0);
     // Place the objects. Since they are equally far away from the camera on the z-axis it's important that we place the one we want closest to us last in the list.
     try scene.add(Sphere.init(.{0, -100.5,  -1},    100, material_ground));

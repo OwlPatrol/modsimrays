@@ -45,6 +45,11 @@ pub fn randomInHemisphere(normal: Vec3) Vec3 {
     if(dot(in_unit_sphere, normal)>0) return in_unit_sphere;
     return -in_unit_sphere;
 }
+pub fn randomUnitVectorInHemisphere(normal: Vec3) Vec3 {
+    const random_direction = randomUnitVector();
+    if(dot(random_direction, normal) > 0.0) return random_direction;
+    return -random_direction;
+}
 
 pub fn norm (self: Vec3) f32 {
     return self[0]*self[0] + self[1]*self[1] + self[2]*self[2];
@@ -103,8 +108,9 @@ pub fn reflect(v: Vec3, n: Vec3) Vec3 { // Potential issue
     return v - scalar(n, 2 * dot(v,n)); 
 }
 
-pub fn randomUnitVectorInHemisphere(normal: Vec3) Vec3 {
-    const random_direction = randomUnitVector();
-    if(dot(random_direction, normal) > 0.0) return random_direction;
-    return -random_direction;
+pub fn refract(unit_vector: Vec3, normal: Vec3, etai_over_etat: f32) Vec3 {
+    const cos_theta = @min(dot(-unit_vector, normal), 1);
+    const out_perp: Vec3 = scalar(scalar(normal, cos_theta) + unit_vector, etai_over_etat);
+    const out_parallell: Vec3 = scalar(normal, -@sqrt(@fabs(1 - norm(out_perp))));
+    return out_perp + out_parallell;
 }

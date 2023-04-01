@@ -6,11 +6,13 @@ const Vec3 = @import("Vec3.zig");
 pub const Material = union(enum) {
     lambertian: Lambertian,
     metal: Metal,
+    dialectric: Dialectric,
 
     pub fn scatter(self:Material, ray_in: Ray, hit_rec: *HitRecord, attenuation: *@Vector(3, f32), scattered: *Ray) bool {
         switch(self) {
-            .lambertian => return self.lambertian.scatter(ray_in, hit_rec, attenuation, scattered), // Could cause issues?
-            .metal => return self.metal.scatter(ray_in, hit_rec, attenuation, scattered), // Could cause issues?
+            .lambertian => return self.lambertian.scatter(ray_in, hit_rec, attenuation, scattered),
+            .metal => return self.metal.scatter(ray_in, hit_rec, attenuation, scattered),
+            .dialectric => return self.dialectric.scatter(ray_in, hit_rec, attenuation, scattered),
         }
     }
 
@@ -20,6 +22,10 @@ pub const Material = union(enum) {
 
     pub fn makeMetal(color:@Vector(3,f32), f: f32) Material {
         return Material {.metal = Metal.init(color, f)};
+    }
+
+    pub fn makeDialectric(refraction_index: f32) Material {
+        return Material { .dialectric = Dialectric {.refraction_index = refraction_index}};
     }
 };
 
@@ -54,4 +60,19 @@ const Metal = struct {
         attenuation.* = self.albedo;
         return Vec3.dot(scattered.*.dir, rec.*.normal) > 0;
     }
+};
+
+const Dialectric = struct {
+    refraction_index: f32,
+
+    fn scatter(self:Dialectric, ray_in: Ray, rec: *HitRecord, attenuation: *@Vector(3, f32), scattered: *Ray) bool {
+        const refraction_ratio: f32 = if (rec.*.front_face) 1/self.refraction_index else self.refraction_index;
+        const unit_dir = Vec3.normalize(ray_in.dir);
+        const refracted = Vec3.refract(unit_dir, rec.*.normal, refraction_ratio);
+
+        attenuation.* = Vec3.init(1, 1, 1);
+        scattered.* = Ray.init(rec.*.p, refracted);
+        return true;
+    }    
+
 };
