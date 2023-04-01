@@ -8,10 +8,7 @@ const Sphere = @import("sphere.zig").Sphere;
 const RndGen = std.rand.DefaultPrng;
 const Camera = @import("camera.zig").Camera;
 const Material = @import("materials.zig").Material;
-const c = 
-    @cImport({
-        @cInclude("SDL.h");
-        });
+const c = @cImport({@cInclude("SDL.h");});
 const point = Vec3.init;
 const black = Vec3.init(0,0,0);
 const zeroVec = black;

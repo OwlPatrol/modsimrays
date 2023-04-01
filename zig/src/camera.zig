@@ -19,6 +19,7 @@ pub const Camera = struct {
     vertical: @Vector(3, f32),
     lower_left: @Vector(3, f32),
 
+
     pub fn init() Camera {
         return Camera{
             .origin = orig,
