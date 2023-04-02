@@ -2,6 +2,7 @@ const std = @import("std");
 const Ray = @import("ray.zig").Ray;
 const HitRecord = @import("hitRecord.zig").HitRecord;
 const Vec3 = @import("Vec3.zig");
+const utils = @import("utils.zig");
 
 pub const Material = union(enum) {
     lambertian: Lambertian,
@@ -68,11 +69,28 @@ const Dialectric = struct {
     fn scatter(self:Dialectric, ray_in: Ray, rec: *HitRecord, attenuation: *@Vector(3, f32), scattered: *Ray) bool {
         const refraction_ratio: f32 = if (rec.*.front_face) 1/self.refraction_index else self.refraction_index;
         const unit_dir = Vec3.normalize(ray_in.dir);
-        const refracted = Vec3.refract(unit_dir, rec.*.normal, refraction_ratio);
+        const cos_theta  = @min(Vec3.dot(-unit_dir, rec.*.normal), 1);
+        const sin_theta = @sqrt(1 - cos_theta*cos_theta);
+
+        const cannot_refract: bool = refraction_ratio*sin_theta > 1.0;
+        var direction = Vec3.init(0, 0, 0);
+
+        if(cannot_refract or reflectance(cos_theta, refraction_ratio) > utils.floatRand(0, 1)){
+            direction = Vec3.reflect(unit_dir, rec.*.normal);
+        } else {
+            direction = Vec3.refract(unit_dir, rec.*.normal, refraction_ratio);
+        }
+
 
         attenuation.* = Vec3.init(1, 1, 1);
-        scattered.* = Ray.init(rec.*.p, refracted);
+        scattered.* = Ray.init(rec.*.p, direction);
         return true;
     }    
+
+    fn reflectance(cosine: f32, ref_idx: f32) f32 {
+        var r0 = (1-ref_idx) / (1+ref_idx);
+        r0 = r0*r0;
+        return r0 + (1-r0)*std.math.pow(f32,(1 - cosine),5);
+    }
 
 };

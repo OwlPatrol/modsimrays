@@ -1,17 +1,7 @@
 const std = @import("std");
-const RndGen = std.rand.DefaultPrng;
 const Vec3 = @Vector(3, f32);
-const time = std.time;
+const utils = @import("utils.zig");
 
-fn floatRand(min: f32, max: f32) f32 {
-    var rand = RndGen.init(0);
-    rand.seed(@intCast(u64, time.nanoTimestamp()));
-    return min + (max - min) * rand.random().float(f32);
-}
-
-x: f32 = 0,
-y: f32 = 0,
-z: f32 = 0,
 
 /// Constructor for a Vec3
 pub fn init(x: f32, y: f32, z: f32) Vec3 {
@@ -24,9 +14,9 @@ pub fn init(x: f32, y: f32, z: f32) Vec3 {
 
 pub fn random(min:f32, max:f32) Vec3 {
     return Vec3 {
-        floatRand(min, max),
-        floatRand(min, max),
-        floatRand(min, max),
+        utils.floatRand(min, max),
+        utils.floatRand(min, max),
+        utils.floatRand(min, max),
     };
 }
 

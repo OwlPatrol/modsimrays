@@ -8,19 +8,12 @@ const Sphere = @import("sphere.zig").Sphere;
 const RndGen = std.rand.DefaultPrng;
 const Camera = @import("camera.zig").Camera;
 const Material = @import("materials.zig").Material;
+const utils = @import("utils.zig");
 const c = @cImport({@cInclude("SDL.h");});
 const point = Vec3.init;
 const black = Vec3.init(0,0,0);
 const zeroVec = black;
 
-fn floatRand() f32 {
-    var rand = RndGen.init(0);
-    return rand.random().float(f32);
-}
-
-fn floatRandRange(min: f32, max: f32) f32 {
-    return min + (max-min)*floatRand();
-}
 
 fn rayColor(ray: Ray, scene: *HittableList, depth: usize) @Vector(3, f32) {
     if(depth <= 0) return black;
@@ -57,12 +50,12 @@ pub fn main() !void {
 
     // Initialize the values for the materials. 
     const material_ground = Material.makeLambertian(Vec3.init(0.8, 0.8, 0.0));
-    const material_center = Material.makeDialectric(1.5);
+    const material_center = Material.makeLambertian(Vec3.init(0.1, 0.2, 0.5));
     const material_left   = Material.makeDialectric(1.5);
-    const material_right  = Material.makeMetal(Vec3.init(0.8, 0.6, 0.2), 1.0);
+    const material_right  = Material.makeMetal(Vec3.init(0.8, 0.6, 0.2), 0.0);
     // Place the objects. Since they are equally far away from the camera on the z-axis it's important that we place the one we want closest to us last in the list.
     try scene.add(Sphere.init(.{0, -100.5,  -1},    100, material_ground));
-    try scene.add(Sphere.init(.{-1, 0,      -1},    0.5, material_left));
+    try scene.add(Sphere.init(.{-1, 0,      -1},   -0.4, material_left));
     try scene.add(Sphere.init(.{1,  0,      -1},    0.5, material_right));
     try scene.add(Sphere.init(.{0,  0,      -1},    0.5, material_center));
 
@@ -74,11 +67,11 @@ pub fn main() !void {
     defer file.close();
     try file.writer().print("P3\n{} {}\n255\n", .{width, height});
     _ = c.SDL_Init(c.SDL_INIT_VIDEO);
-    defer c.SDL_Quit();
     const window = c.SDL_CreateWindow("Awesome Raytracer", c.SDL_WINDOWPOS_UNDEFINED, c.SDL_WINDOWPOS_UNDEFINED, width, height, c.SDL_WINDOW_SHOWN);
-    defer c.SDL_DestroyWindow(window);
     const renderer = c.SDL_CreateRenderer(window, -1, 0);
+    defer c.SDL_DestroyWindow(window);
     defer c.SDL_DestroyRenderer(renderer);
+    defer c.SDL_Quit();
    
     // Main loop
     var row = height;
@@ -88,8 +81,8 @@ pub fn main() !void {
 
             var pixel_color = black;
             for (0..samples) |_| {
-                const u = (@intToFloat(f32, col)+floatRand())/@intToFloat(f32, width-1);
-                const v = (@intToFloat(f32, row)+floatRand())/@intToFloat(f32, height-1);
+                const u = (@intToFloat(f32, col)+utils.floatRand(0,1))/@intToFloat(f32, width-1);
+                const v = (@intToFloat(f32, row)+utils.floatRand(0,1))/@intToFloat(f32, height-1);
                 const r = cam.getRay(u, v);
                 pixel_color += rayColor(r, &scene, max_depth);
             }
