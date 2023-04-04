@@ -4,11 +4,13 @@ const HitRecord = @import("hitRecord.zig").HitRecord;
 const Vec3 = @import("Vec3.zig");
 const main = @import("main.zig");
 
+/// Tagged union representing the abstract idea of a material. Can only hold a value in one field at a time.
 pub const Material = union(enum) {
     lambertian: Lambertian,
     metal: Metal,
     dialectric: Dialectric,
 
+    /// Generalized scatter() function. Will call the relevant scatter function depending on what material it is
     pub fn scatter(self:Material, ray_in: Ray, hit_rec: *HitRecord, attenuation: *@Vector(3, f64), scattered: *Ray) bool {
         switch(self) {
             .lambertian => return self.lambertian.scatter(ray_in, hit_rec, attenuation, scattered),

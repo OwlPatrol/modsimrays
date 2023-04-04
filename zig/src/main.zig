@@ -6,7 +6,7 @@ const HittableList = @import("hitlist.zig").HittableList;
 const Sphere = @import("sphere.zig").Sphere;
 const Camera = @import("camera.zig").Camera;
 const Material = @import("materials.zig").Material;
-const c = @cImport({@cInclude("SDL2.h");});
+const c = @cImport({@cInclude("SDL.h");});
 const point = Vec3.init;
 const black = Vec3.init(0,0,0);
 const RndGen = std.rand.DefaultPrng;
@@ -72,19 +72,23 @@ pub fn main() !void {
     const aspect_ratio = 3.0/2.0;
     const width = 1200;
     const height = @floatToInt(usize, (@intToFloat(f64, width) / aspect_ratio));
-    const samples = 50; 
+    const samples = 500; 
     const max_depth = 50;
 
     // Render & Utils
+    // Output the .ppm file
     var file = try std.fs.cwd().createFile("output.ppm",  .{});
     defer file.close();
     try file.writer().print("P3\n{} {}\n255\n", .{width, height});
+
+    // The image renderer that almost kinda sorta works
     _ = c.SDL_Init(c.SDL_INIT_VIDEO);
     const window = c.SDL_CreateWindow("Awesome Raytracer", c.SDL_WINDOWPOS_UNDEFINED, c.SDL_WINDOWPOS_UNDEFINED, width, height, c.SDL_WINDOW_SHOWN);
     const renderer = c.SDL_CreateRenderer(window, -1, 0);
     defer c.SDL_DestroyWindow(window);
     defer c.SDL_DestroyRenderer(renderer);
     defer c.SDL_Quit();
+    // RNG for future purposes. 
     rand = RndGen.init(@intCast(u64, time.nanoTimestamp()));
 
     // World Initialization
@@ -105,21 +109,19 @@ pub fn main() !void {
     // Main loop
     var row = height;
     while (row > 0):(row -= 1) {
+        std.debug.print("There are {} rows left to render\n", .{row});
         for (0..width) |col| {
-
-
             var pixel_color = black;
             for (0..samples) |_| {
                 const u = (@intToFloat(f64, col)+floatRand(0,1))/@intToFloat(f64, width-1);
                 const v = (@intToFloat(f64, row)+floatRand(0,1))/@intToFloat(f64, height-1);
                 const r = cam.getRay(u, v);
-                pixel_color += Ray.rayColor(r, &scene, max_depth);
+                pixel_color += Ray.rayColor(r, &scene, max_depth); // Store all the values returned from rayColor
             }
-           //try color.renderColor(file.writer(), pixel_color, samples);
            try color.renderColor(renderer, file.writer(), pixel_color, samples, col, height - row);
         }
         _ = c.SDL_RenderPresent(renderer);
     }
-    c.SDL_Delay(10000);
+    c.SDL_Delay(100000);
 }
 
