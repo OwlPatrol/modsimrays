@@ -1,17 +1,10 @@
-<<<<<<< HEAD
+
 const std = @import("std");
 const Ray = @import("ray.zig").Ray;
 const vector = @import("Vec3.zig");
 const Vec3 = vector.Vec3;
 const Point = @Vector(3, f64);
 
-=======
-
-const Vec3 = @import("vector.zig");
-
-const Ray = @import("rays.zig").Ray;
-const Vec3 = @Vector(3, f32);
->>>>>>> 6c2ecc8d6e2afa26fb3f3ed7d293d33d593a88e0
 
 pub const Camera = struct {
     pub const Self = @This();
@@ -44,7 +37,6 @@ pub const Camera = struct {
         return Camera { .origin = origin, .lower_left = lower_left, .horizontal = horizontal, .vertical = vertical, .u = u, .v = v, .w = w,  .lens_radius = lens_radius };
     }
 
-<<<<<<< HEAD
     pub fn getRay(self: Camera, s: f64, t: f64) Ray {
         const rd = vector.scalar(vector.randomInUnitDisc(), self.lens_radius);
         const offset = vector.scalar(self.u, rd[0]) + vector.scalar(self.v, rd[1]);
@@ -56,18 +48,5 @@ pub const Camera = struct {
             - self.origin
             - offset
             );
-=======
-    pub fn getRay(self: Camera, u: f32, v: f32) Ray {
-        return 
-        Ray.init
-        (
-            self.origin,      
-            self.lower_left 
-            + Vec3.scalar(self.horizontal, u) 
-            + Vec3.scalar(self.vertical, v) 
-            - self.origin
-
-        );
->>>>>>> 6c2ecc8d6e2afa26fb3f3ed7d293d33d593a88e0
     }
 };
