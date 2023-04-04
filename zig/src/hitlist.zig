@@ -28,13 +28,12 @@ pub const HittableList = struct {
         self.objects.deinit();
     } 
 
-    pub fn hit(self:HittableList, ray: Ray, t_min: f32, t_max: f32, rec: *HitRecord) bool {
+    pub fn hit(self:HittableList, ray: Ray, t_min: f64, t_max: f64, rec: *HitRecord) bool {
         var temp_rec = HitRecord.init();
         var recpointer: *HitRecord = &temp_rec;
         var hit_anything: bool = false;
         var closest = t_max;
         for (self.objects.items) |object| {
-            //std.debug.print("{}\n", .{object});
             if (object.hit(ray, t_min, t_max, recpointer)) {
                 hit_anything = true;
                 closest = temp_rec.t;

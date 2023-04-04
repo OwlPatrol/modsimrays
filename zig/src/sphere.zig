@@ -7,15 +7,15 @@ const point = Vec3.init;
 
 
 pub const Sphere = struct {
-    center: @Vector(3, f32),
-    radius: f32,
+    center: @Vector(3, f64),
+    radius: f64,
     material: Material,
 
-    pub fn init(center: @Vector(3, f32), radius: f32, material: Material) Sphere  {
+    pub fn init(center: @Vector(3, f64), radius: f64, material: Material) Sphere  {
         return Sphere {.center = center, .radius = radius, .material = material};
     }
 
-    pub fn hit(self: Sphere, ray: Ray, t_min: f32, t_max: f32, rec: *HitRecord) bool {
+    pub fn hit(self: Sphere, ray: Ray, t_min: f64, t_max: f64, rec: *HitRecord) bool {
         const oc = ray.origin - self.center;
         const a = Vec3.norm(ray.dir);
         const b = Vec3.dot(oc, ray.dir);

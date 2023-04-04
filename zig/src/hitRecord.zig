@@ -4,10 +4,10 @@ const Vec3 = @import("Vec3.zig");
 const Material = @import("materials.zig").Material;
 
 pub const HitRecord = struct {
-    p: @Vector(3, f32),
-    normal: @Vector(3, f32),
+    p: @Vector(3, f64),
+    normal: @Vector(3, f64),
     material: Material, // Could become issue
-    t: f32,
+    t: f64,
     front_face: bool,
 
     pub fn init() HitRecord {
@@ -20,7 +20,7 @@ pub const HitRecord = struct {
         };
     }
 
-    pub fn setFaceNormal(self: *HitRecord, ray: Ray, out_normal: @Vector(3, f32)) void {
+    pub fn setFaceNormal(self: *HitRecord, ray: Ray, out_normal: @Vector(3, f64)) void {
         self.*.front_face = Vec3.dot(ray.dir, out_normal) < 0;
         self.*.normal = if (self.front_face) out_normal else -out_normal; 
     }

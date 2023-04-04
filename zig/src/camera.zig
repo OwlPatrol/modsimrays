@@ -1,41 +1,51 @@
 const std = @import("std");
 const Ray = @import("ray.zig").Ray;
-const Vec3 = @import("Vec3.zig");
-const Point = @Vector(3, f32);
+const vector = @import("Vec3.zig");
+const Vec3 = vector.Vec3;
+const Point = @Vector(3, f64);
 
-const aspectRatio = 16.0 / 9.0;
-const height = 2.0;
-const width = height * aspectRatio;
-const focal_length = 1;
-
-const orig = Vec3.init(0, 0, 0);
-const horiz = Vec3.init(width, 0, 0);
-const vert = Vec3.init(0, height, 0);
-const low_left = orig - Vec3.div(horiz, 2) - Vec3.div(vert, 2) - Vec3.init(0, 0, focal_length);
 
 pub const Camera = struct {
-    origin: @Vector(3, f32),
-    horizontal: @Vector(3, f32),
-    vertical: @Vector(3, f32),
-    lower_left: @Vector(3, f32),
+    pub const Self = @This();
+    origin: Vec3,
+    lower_left: Vec3,
+    horizontal: Vec3,
+    vertical: Vec3,
+    u: Vec3,
+    v: Vec3,
+    w: Vec3,
+    lens_radius: f64,
 
+    pub fn init(lookfrom: Point, lookat: Point, vup: Vec3, vfov: f64, aspect_ratio: f64, aperture: f64, focus_dist: f64) Camera {
+        const theta = std.math.degreesToRadians(f64, vfov);
+        const h = @tan(theta / 2);
+        const height = 2.0 * h;
+        const width = aspect_ratio * height;
 
-    pub fn init() Camera {
-        return Camera{
-            .origin = orig,
-            .horizontal = horiz,
-            .vertical = vert,
-            .lower_left = low_left,
-        };
+        const w = vector.normalize(lookfrom-lookat);
+        const u = vector.normalize(vector.cross(vup, w));
+        const v = vector.cross(w, u);
+
+        const origin = lookfrom;
+        const horizontal = vector.scalar(u, focus_dist*width);
+        const vertical = vector.scalar(v, focus_dist*height);
+        const lower_left = origin - vector.div(horizontal, 2) - vector.div(vertical, 2) - vector.scalar(w, focus_dist);
+
+        const lens_radius = aperture/2;
+
+        return Camera { .origin = origin, .lower_left = lower_left, .horizontal = horizontal, .vertical = vertical, .u = u, .v = v, .w = w,  .lens_radius = lens_radius };
     }
 
-    pub fn getRay(self: Camera, u: f32, v: f32) Ray {
+    pub fn getRay(self: Camera, s: f64, t: f64) Ray {
+        const rd = vector.scalar(vector.randomInUnitDisc(), self.lens_radius);
+        const offset = vector.scalar(self.u, rd[0]) + vector.scalar(self.v, rd[1]);
         return Ray.init(
-            self.origin, 
-            self.lower_left 
-            + Vec3.scalar(self.horizontal, u) 
-            + Vec3.scalar(self.vertical, v) 
+            self.origin + offset, 
+            self.lower_left
+            + vector.scalar(self.horizontal, s) 
+            + vector.scalar(self.vertical, t) 
             - self.origin
+            - offset
             );
     }
 };

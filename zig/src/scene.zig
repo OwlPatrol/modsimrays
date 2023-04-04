@@ -15,10 +15,10 @@ pub const Scene = struct {
         return Scene {.object_list = new_list};
     }
 
-    pub fn hit(self: Scene, ray: Ray, t_min: f32, t_max: f32, hit_rec: *HitRecord) bool {
+    pub fn hit(self: Scene, ray: Ray, t_min: f64, t_max: f64, hit_rec: *HitRecord) bool {
         var temp_rec: HitRecord = HitRecord{};
         var is_hit = false;
-        var closest: f32 = t_max;
+        var closest: f64 = t_max;
 
         for (self.object_list) |shape| {
             if(shape.hitShape(ray, t_min, closest, &temp_rec)) {
