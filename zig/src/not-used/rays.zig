@@ -4,7 +4,13 @@ const Scene = @import("scene.zig").Scene;
 const Vec3 = @import("vector.zig");
 const HitRecord = @import("hitrecord.zig").HitRecord;
 
+<<<<<<< HEAD:zig/src/not-used/rays.zig
 const black = @Vector(3,f32){0,0,0};
+=======
+
+const black = Vec3.init(0, 0, 0);
+
+>>>>>>> 6c2ecc8d6e2afa26fb3f3ed7d293d33d593a88e0:zig/src/rays.zig
 
 /// A Ray has a direction vector and a starting point.
 pub const Ray = struct {
@@ -37,7 +43,11 @@ pub const Ray = struct {
             print("No hit", .{});
             var unit_dir: @Vector(3, f32) = Vec3.normalize(self.dir);
             var t: f32 = 0.5 * (unit_dir[1] + 1.0);
+<<<<<<< HEAD:zig/src/not-used/rays.zig
             return Vec3.scalar(Vec3.init(1, 1, 1), 1 - t) + Vec3.scalar(Vec3.init(0.5, 0.7, 1.0), t);
+=======
+            return Vec3.scalar(Vec3.init(0, 0, 0), 1 - t) + Vec3.scalar(Vec3.init(0.5, 0.7, 1.0), t);
+>>>>>>> 6c2ecc8d6e2afa26fb3f3ed7d293d33d593a88e0:zig/src/rays.zig
         }
     }
 };

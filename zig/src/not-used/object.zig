@@ -37,12 +37,22 @@ pub const Sphere = struct {
 
     fn hit(self: Sphere, ray: Ray, t_min: f32, t_max: f32, hit_rec: *HitRecord) bool {
         const oc: @Vector(3, f32) = ray.origin - self.center;
+<<<<<<< HEAD:zig/src/not-used/object.zig
         const a: f32 = Vec3.norm(ray.dir);
         const b: f32 = Vec3.dot(oc, ray.dir);
         const c: f32 = Vec3.norm(oc) - self.radius * self.radius;
         const discriminant: f32 = b*b - a*c;
         if (discriminant > 0.0) {
             var temp = (0-b - @sqrt(discriminant)) / a;
+=======
+
+        const a = Vec3.norm(ray.dir);
+        const b = Vec3.dot(oc, ray.dir);
+        const c = Vec3.norm(oc) - self.radius * self.radius;
+        const discriminant = b * b - a * c;
+        if (discriminant > 0) {
+            var temp = (b - @sqrt(discriminant)) / a;
+>>>>>>> 6c2ecc8d6e2afa26fb3f3ed7d293d33d593a88e0:zig/src/object.zig
             if (temp > t_min and temp < t_max) {
                 hit_rec.*.t = temp;
                 hit_rec.*.p = ray.pointsAt(temp);
@@ -56,6 +66,10 @@ pub const Sphere = struct {
                 hit_rec.*.normal = Vec3.scalar((hit_rec.p - self.center), 1 / self.radius);
                 return true;
             }
+<<<<<<< HEAD:zig/src/not-used/object.zig
+=======
+
+>>>>>>> 6c2ecc8d6e2afa26fb3f3ed7d293d33d593a88e0:zig/src/object.zig
         }
         return false;
     }
