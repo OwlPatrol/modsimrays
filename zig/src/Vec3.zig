@@ -21,13 +21,14 @@ pub fn random(min:f64, max:f64) Vec3 {
 }
 
 pub fn randomInUnitSphere() Vec3 {
-    var p = random(-1, 1);
-    while (length(p) >= 1) p = random(-1, 1);
-    return p;
+    const r = main.floatRand(0, 1);
+    const theta = main.floatRand(0, 1)*2*std.math.pi;
+    const phi = main.floatRand(0, 1)*std.math.pi;
+    return init(r*@cos(theta)*@sin(phi), r*@sin(theta)*@sin(phi), r*@cos(phi));
 }
 
 pub fn randomUnitVector() Vec3 {
-    return normalize(random(-1,1));
+    return normalize(randomInUnitSphere());
 }
 
 pub fn randomInHemisphere(normal: Vec3) Vec3 {
@@ -42,19 +43,17 @@ pub fn randomUnitVectorInHemisphere(normal: Vec3) Vec3 {
 }
 
 pub fn randomInUnitDisc() Vec3 {
-    while (true) {
-        var p = init(main.floatRand(-1, 1), main.floatRand(-1,1), 0);
-        if(norm(p) >= 1) continue;
-        return p;
-    }
+    const r = main.floatRand(0, 1);
+    const theta = main.floatRand(0, 1)*2*std.math.pi;
+    return init(r*@cos(theta), r*@sin(theta), 0);
 }
 
 pub fn norm (self: Vec3) f64 {
-    return dot(self, self);
+    return @reduce(.Add, self*self);
 }
 
 pub fn length (self: Vec3) f64 {
-    return @sqrt(norm(self));
+    return @sqrt(@reduce(.Add, self*self));
 }
 
 pub fn normalize (self: Vec3) Vec3 {
@@ -63,7 +62,7 @@ pub fn normalize (self: Vec3) Vec3 {
 
 /// Implementation of dot product handling
 pub fn dot(self: Vec3, other: Vec3) f64 {
-    return self[0] * other[0] + self[1] * other[1] + self[2] * other[2];
+    return @reduce(.Add, self*other);
 }
 
 /// Naive asf cross product function.
@@ -75,22 +74,13 @@ pub fn cross(self: Vec3, other: Vec3) Vec3 {
     };
 }
 
-/// Scalar Multiplication doesn't exist in zig, who knew? 
-/// We need it tho.
+/// Cheaty way to hopefully do scalar multiplication using SIMD
 pub fn scalar(self: Vec3, num: f64) Vec3 {
-    return Vec3 {
-        self[0] * num,
-        self[1] * num,
-        self[2] * num,            
-    };
+    return self * @splat(3, num);
 }
 
 pub fn div(self: Vec3, num: f64) Vec3 {
-    return Vec3 {
-        self[0] / num,
-        self[1] / num,
-        self[2] / num,
-    };
+    return self * @splat(3, 1/num);
 }
 
 pub fn toInt(comptime T: type, self: Vec3) @Vector(3, T) {
@@ -108,7 +98,7 @@ pub fn reflect(v: Vec3, n: Vec3) Vec3 { // Potential issue
 
 pub fn refract(unit_vector: Vec3, normal: Vec3, etai_over_etat: f64) Vec3 {
     const cos_theta = @min(dot(-unit_vector, normal), 1.0);
-    const out_perp: Vec3 = scalar(scalar(normal, cos_theta) + unit_vector, etai_over_etat);
+    const out_perp: Vec3 = @splat(3, etai_over_etat)*(normal*@splat(3, cos_theta) + unit_vector);
     const out_parallel: Vec3 = scalar(normal, -@sqrt(@fabs(1 - norm(out_perp))));
     return out_perp + out_parallel;
 }

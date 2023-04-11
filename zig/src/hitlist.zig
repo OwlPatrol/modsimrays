@@ -35,6 +35,7 @@ pub const HittableList = struct {
         var closest = t_max;
         for (self.objects.items) |object| {
             if (object.hit(ray, t_min, t_max, recpointer)) {
+                if(temp_rec.t > closest) continue;
                 hit_anything = true;
                 closest = temp_rec.t;
                 rec.* = temp_rec;

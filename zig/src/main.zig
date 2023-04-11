@@ -6,7 +6,7 @@ const HittableList = @import("hitlist.zig").HittableList;
 const Sphere = @import("sphere.zig").Sphere;
 const Camera = @import("camera.zig").Camera;
 const Material = @import("materials.zig").Material;
-const c = @cImport({@cInclude("SDL.h");});
+//const c = @cImport({@cInclude("SDL.h");});
 const point = Vec3.init;
 const black = Vec3.init(0,0,0);
 const RndGen = std.rand.DefaultPrng;
@@ -74,6 +74,9 @@ pub fn main() !void {
     const height = @floatToInt(usize, (@intToFloat(f64, width) / aspect_ratio));
     const samples = 500; 
     const max_depth = 50;
+    const thread_amount = 4;
+    const slice_length = height / thread_amount;
+    var threads: [4]std.Thread = undefined;
 
     // Render & Utils
     // Output the .ppm file
@@ -82,12 +85,12 @@ pub fn main() !void {
     try file.writer().print("P3\n{} {}\n255\n", .{width, height});
 
     // The image renderer that almost kinda sorta works
-    _ = c.SDL_Init(c.SDL_INIT_VIDEO);
-    const window = c.SDL_CreateWindow("Awesome Raytracer", c.SDL_WINDOWPOS_UNDEFINED, c.SDL_WINDOWPOS_UNDEFINED, width, height, c.SDL_WINDOW_SHOWN);
-    const renderer = c.SDL_CreateRenderer(window, -1, 0);
-    defer c.SDL_DestroyWindow(window);
-    defer c.SDL_DestroyRenderer(renderer);
-    defer c.SDL_Quit();
+    //_ = c.SDL_Init(c.SDL_INIT_VIDEO);
+    //const window = c.SDL_CreateWindow("Awesome Raytracer", c.SDL_WINDOWPOS_UNDEFINED, c.SDL_WINDOWPOS_UNDEFINED, width, height, c.SDL_WINDOW_SHOWN);
+    //const renderer = c.SDL_CreateRenderer(window, -1, 0);
+    //defer c.SDL_DestroyWindow(window);
+    //defer c.SDL_DestroyRenderer(renderer);
+    //defer c.SDL_Quit();
     // RNG for future purposes. 
     rand = RndGen.init(@intCast(u64, time.nanoTimestamp()));
 
@@ -107,21 +110,21 @@ pub fn main() !void {
     var cam = Camera.init(lookfrom, lookat, vup, 20, aspect_ratio, aperture, focus_dist);
 
     // Main loop
-    var row = height;
-    while (row > 0):(row -= 1) {
-        std.debug.print("There are {} rows left to render\n", .{row});
+    for (0..height) |row| {
+        std.debug.print("There are {} rows left to render\n", .{height-row});
         for (0..width) |col| {
             var pixel_color = black;
             for (0..samples) |_| {
                 const u = (@intToFloat(f64, col)+floatRand(0,1))/@intToFloat(f64, width-1);
-                const v = (@intToFloat(f64, row)+floatRand(0,1))/@intToFloat(f64, height-1);
+                const v = (@intToFloat(f64, height-row)+floatRand(0,1))/@intToFloat(f64, height-1);
                 const r = cam.getRay(u, v);
                 pixel_color += Ray.rayColor(r, &scene, max_depth); // Store all the values returned from rayColor
             }
-           try color.renderColor(renderer, file.writer(), pixel_color, samples, col, height - row);
+           //try color.renderColor(renderer, file.writer(), pixel_color, samples, col, height - row);
+           try color.renderColor(file.writer(), pixel_color, samples, col, height - row);
         }
-        _ = c.SDL_RenderPresent(renderer);
+        //_ = c.SDL_RenderPresent(renderer);
     }
-    c.SDL_Delay(100000);
+    //c.SDL_Delay(100000);
 }
 

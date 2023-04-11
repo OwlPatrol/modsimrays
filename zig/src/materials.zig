@@ -75,7 +75,7 @@ const Dialectric = struct {
         const sin_theta = @sqrt(1.0 - cos_theta*cos_theta);
 
         const cannot_refract: bool = refraction_ratio*sin_theta > 1.0;
-        var direction = Vec3.init(0, 0, 0);
+        var direction = @splat(3, @as(f64, 0));
 
         if(cannot_refract or reflectance(cos_theta, refraction_ratio) > main.floatRand(0, 1.0)){
             direction = Vec3.reflect(unit_dir, rec.*.normal);
@@ -84,7 +84,7 @@ const Dialectric = struct {
         }
 
 
-        attenuation.* = Vec3.init(1, 1, 1);
+        attenuation.* = @splat(3, @as(f64, 1.0));
         scattered.* = Ray.init(rec.*.p, direction);
         return true;
     }    
