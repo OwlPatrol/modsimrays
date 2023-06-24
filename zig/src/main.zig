@@ -73,8 +73,8 @@ fn randomScene(scene: *HittableList) !void {
 pub fn main() !void {
 
     // Image specs
-    const aspect_ratio = 16.0 / 9.0;
-    const width = 1080;
+    const aspect_ratio = 3.0 / 2.0;
+    const width = 1200;
     const height = @floatToInt(usize, (@intToFloat(f64, width) / aspect_ratio));
     const samples = 500;
     const max_depth = 50;

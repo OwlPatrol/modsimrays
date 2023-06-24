@@ -35,11 +35,11 @@ pub const HittableList = struct {
 
     pub fn hit(self: HittableList, ray: Ray, t_min: f64, t_max: f64, rec: *HitRecord) bool {
         var temp_rec = HitRecord.init();
-        var recpointer: *HitRecord = &temp_rec;
+        var rec_pointer: *HitRecord = &temp_rec;
         var hit_anything: bool = false;
         var closest = t_max;
         for (self.objects.items) |object| {
-            if (object.hit(ray, t_min, t_max, recpointer)) {
+            if (object.hit(ray, t_min, t_max, rec_pointer)) {
                 if(temp_rec.t > closest) continue;
                 hit_anything = true;
                 closest = temp_rec.t;

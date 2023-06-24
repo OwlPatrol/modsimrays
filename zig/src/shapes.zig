@@ -13,7 +13,7 @@ const sort = std.sort.sort;
 
 pub const Shape = union(enum) {
     sphere: Sphere,
-    movingSphere: MovingSphere,
+    moving_sphere: MovingSphere,
     bvhNode: BvhNode,
 
     pub fn makeBvh(list: *HittableList, timeStart: f64, timeEnd: f64) Shape {
@@ -24,7 +24,7 @@ pub const Shape = union(enum) {
     }
 
     pub fn movingSphere(centerStart: Point, centerStop: Point, timeStart: f64, timeStop: f64, radius: f64, material: Material) Shape {
-        return Shape{ .movingSphere = MovingSphere{ .centerStart = centerStart, .centerStop = centerStop, .timeStart = timeStart, .timeStop = timeStop, .radius = radius, .material = material } };
+        return Shape{ .moving_sphere = MovingSphere{ .centerStart = centerStart, .centerStop = centerStop, .timeStart = timeStart, .timeStop = timeStop, .radius = radius, .material = material } };
     }
 
     pub fn hit(self: Shape, ray: Ray, t_min: f64, t_max: f64, rec: *HitRecord) bool {
@@ -38,10 +38,10 @@ pub const Shape = union(enum) {
                 radius = self.sphere.radius;
                 material = self.sphere.material;
             },
-            .movingSphere => {
-                center = self.movingSphere.center(ray.time);
-                radius = self.movingSphere.radius;
-                material = self.movingSphere.material;
+            .moving_sphere => {
+                center = self.moving_sphere.center(ray.time);
+                radius = self.moving_sphere.radius;
+                material = self.moving_sphere.material;
             },
         }
         const oc = ray.origin - center;
