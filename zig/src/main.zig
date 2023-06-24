@@ -4,6 +4,7 @@ const Ray = @import("ray.zig").Ray;
 const color = @import("color.zig");
 const HittableList = @import("hitlist.zig").HittableList;
 const Shape = @import("shapes.zig").Shape;
+const BvhNode = @import("shapes.zig").BvhNode;
 const Camera = @import("camera.zig").Camera;
 const Material = @import("materials.zig").Material;
 const point = Vec3.init;
@@ -73,9 +74,9 @@ pub fn main() !void {
 
     // Image specs
     const aspect_ratio = 16.0 / 9.0;
-    const width = 400;
+    const width = 1080;
     const height = @floatToInt(usize, (@intToFloat(f64, width) / aspect_ratio));
-    const samples = 100;
+    const samples = 500;
     const max_depth = 50;
 
     // Render & Utils
@@ -92,7 +93,7 @@ pub fn main() !void {
     var alloc = std.heap.page_allocator;
     var scene = HittableList.init(alloc);
     defer scene.destroy(); // Defer this to happen at the closing bracket of the main functionWS
-    try randomScene(&scene);
+    try randomScene(&scene); 
 
     // Camera
     const lookfrom = point(13, 2, 3);

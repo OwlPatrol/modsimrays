@@ -7,7 +7,8 @@ const BoundingBox = @import("boundingBox.zig").BoundingBox;
 const Point = @Vector(3, f64);
 const HittableList = @import("hitlist.zig").HittableList;
 const uintRand = @import("main.zig").uintRand;
-const BoxComparator= fn (box0: BoundingBox, box1: BoundingBox) bool;
+const BoxComparator = fn (box0: BoundingBox, box1: BoundingBox) bool;
+const sort = std.sort.sort;
 
 
 pub const Shape = union(enum) {
@@ -15,6 +16,9 @@ pub const Shape = union(enum) {
     movingSphere: MovingSphere,
     bvhNode: BvhNode,
 
+    pub fn makeBvh(list: *HittableList, timeStart: f64, timeEnd: f64) Shape {
+        return BvhNode.initSlice(list, 0, @intCast(u32, list.length()), timeStart, timeEnd);
+    }
     pub fn stationarySphere(center: Point, radius: f64, material: Material) Shape {
         return Shape{ .sphere = Sphere{ .center = center, .radius = radius, .material = material } };
     }
@@ -65,7 +69,8 @@ pub const Shape = union(enum) {
     pub fn bounding (self: Shape, timeStart:f64, timeEnd:f64, box: *BoundingBox) bool {
         switch(self) {
             .sphere => return self.sphere.bounding(box),
-            .movingSphere => return self.movingSphere.bounding(timeStart, timeEnd, box)
+            .movingSphere => return self.movingSphere.bounding(timeStart, timeEnd, box),
+            .bvhNode => return self.bvhNode.bounding(box),
         }
     }
 };
@@ -77,8 +82,8 @@ pub const Sphere = struct {
 
     pub fn bounding(self: Sphere, box: *BoundingBox) bool {
         const radius = self.radius;
-        box.*.min = self.sphere.center - Vec3.init(radius, radius, radius);
-        box.*.max = self.sphere.center + Vec3.init(radius, radius, radius);
+        box.*.min = self.center - Vec3.init(radius, radius, radius);
+        box.*.max = self.center + Vec3.init(radius, radius, radius);
         return true;
     }
 };
@@ -107,39 +112,75 @@ pub const MovingSphere = struct {
     }
 };
 
-const BvhNode = struct {
+pub const BvhNode = struct {
 
     left: *Shape,
     right: *Shape,
     box: BoundingBox,
 
-    pub fn init(list: *HittableList, timeStart: f64, timeEnd: f64) BvhNode {
-        return initSlice(list, 0, list.size(), timeStart, timeEnd);
+    fn compareBoxes(a: *Shape, b: *Shape, axis: u32) bool {
+        var box_a: BoundingBox = undefined;
+        var box_b: BoundingBox = undefined;
+
+        if(!a.*.bounding(0, 0, &box_a) or !b.*.bounding(0, 0, &box_b)) std.debug.print("Wat");
+        return box_a.min[axis] < box_b.min[axis];
     }
 
-    pub fn initSlice(list: *HittableList, start: u32, end: u32, timeStart: f64, timeEnd:f64) BvhNode {
-        const axis = uintRand(2);
-        const objects = list.*.objects;
-        const span = end - start;
-        var left = undefined; var right = undefined; var box = undefined;
-        const comparator: BoxComparator = BoundingBox.boxCompare(axis);
+    fn generateXComparator () fn (void, *Shape, *Shape) bool {
+        return struct {
+            pub fn inner(_: void, a: *Shape, b: *Shape) bool {
+                return compareBoxes(a, b, 0);
+            }
+        }.inner;
+    }
 
+    fn generateYComparator() fn (void, *Shape, *Shape) bool {
+        return struct {
+            pub fn inner(_: void, a: *Shape, b: *Shape) bool {
+                return compareBoxes(a, b, 1); 
+            }
+        }.inner;
+    }
+
+    fn generateZComparator () fn (void, *Shape, *Shape) bool {
+        return struct {
+            pub fn inner(_: void, a: *Shape, b: *Shape) bool {
+                return compareBoxes(a, b, 2); 
+            }
+        }.inner;
+    }
+
+    pub fn initSlice(list: *HittableList, start: u32, end: u32, timeStart: f64, timeEnd:f64) Shape {
+        const axis = uintRand(2);
+    
+        const objects = list.*.objects.items;
+        const span = end - start;
+        var left: Shape = undefined; var right: Shape = undefined; var box: BoundingBox = undefined;
         switch(span) {
             1 => {
-                left = objects[start]; 
-                right = objects[start];
+                left = &objects[start]; 
+                right = &objects[start];
+                box = objects[start].bounding();
                 },
             2 => {
-                if(BoundingBox(objects[start], objects[start+1], span)) {
-                    left = objects[start];
-                    right = objects[start+1];
+                const box0 = objects[start].bounding();
+                const box1 = objects[start+1].bounding();
+                if(BoundingBox.compareBoxes(box0, box1, axis)) {
+                    left = &objects[start];
+                    right = &objects[start+1];
                 } else {
-                    left = objects[start+1];
-                    right = objects[start];
+                    left = &objects[start+1];
+                    right = &objects[start];
                 }
+                box = box0.surroundingBox(box1);
             }, 
             else => {
-                std.sort(Shape, objects[start..end], {}, comparator);
+                switch(axis) {
+                    0 => sort(Shape, objects[start..end], {}, generateXComparator()),
+                    1 => sort(Shape, objects[start..end], {}, generateYComparator()),
+                    2 => sort(Shape, objects[start..end], {}, generateZComparator()),
+                    else => unreachable,
+                }
 
                 const mid = start + span/2;
                 left = initSlice(list, start, mid, timeStart, timeEnd);
@@ -149,10 +190,11 @@ const BvhNode = struct {
         var box_left: BoundingBox = undefined;
         var box_right: BoundingBox = undefined;
 
-        if(!left.*.boundingBox(timeStart, timeEnd, &box_left) or !right.*.boundingBox(timeStart, timeEnd, &box_right)) 
+        if(!left.bounding(timeStart, timeEnd, &box_left) or !right.bounding(timeStart, timeEnd, &box_right)) 
             std.debug.print("Bro wtf", .{});
 
         box = BoundingBox.surroundingBox(box_left, box_right);
+        return Shape {.bvhNode = BvhNode{.left = &left, .right = &right, .box = box}};
     }
 
     pub fn hit(self: BvhNode, ray: Ray, t_min: f64, t_max: f64, rec: *HitRecord) bool {
@@ -163,7 +205,7 @@ const BvhNode = struct {
         return (hit_left or hit_right);
     }
 
-    pub fn boundingBox(self: BvhNode, output: *BoundingBox) bool {
+    pub fn bounding(self: BvhNode, output: *BoundingBox) bool {
         output.*.min = self.box.min;
         output.*.min = self.box.min;
         return true;

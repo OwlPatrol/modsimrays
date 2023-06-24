@@ -37,14 +37,4 @@ pub const BoundingBox = struct {
         }
         return true;
     }
-
-    pub fn surroundingBox(box0: BoundingBox, box1: BoundingBox) BoundingBox {
-        const small: Point = @min(box0.min, box1.min);
-        const big: Point = @max(box0.max, box1.max);
-        return BoundingBox {.min = small, .max = big};
-    }
-
-    pub fn compareBoxes(box0: BoundingBox, box1: BoundingBox, axis: u32) bool {
-        return box0.min[axis] < box1.min[axis];
-    }
 };

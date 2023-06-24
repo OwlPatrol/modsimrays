@@ -29,6 +29,10 @@ pub const HittableList = struct {
         self.objects.deinit();
     } 
 
+    pub fn length(self: HittableList) usize {
+        return self.objects.items.len;
+    }
+
     pub fn hit(self: HittableList, ray: Ray, t_min: f64, t_max: f64, rec: *HitRecord) bool {
         var temp_rec = HitRecord.init();
         var recpointer: *HitRecord = &temp_rec;
