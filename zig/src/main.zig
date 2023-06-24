@@ -3,12 +3,11 @@ const Vec3 = @import("Vec3.zig");
 const Ray = @import("ray.zig").Ray;
 const color = @import("color.zig");
 const HittableList = @import("hitlist.zig").HittableList;
-const Sphere = @import("sphere.zig").Sphere;
+const Shape = @import("shapes.zig").Shape;
 const Camera = @import("camera.zig").Camera;
 const Material = @import("materials.zig").Material;
-//const c = @cImport({@cInclude("SDL.h");});
 const point = Vec3.init;
-const black = Vec3.init(0,0,0);
+const black = Vec3.init(0, 0, 0);
 const RndGen = std.rand.DefaultPrng;
 const time = std.time;
 
@@ -18,40 +17,44 @@ pub fn floatRand(min: f64, max: f64) f64 {
     return min + (max - min) * rand.random().float(f64);
 }
 
+pub fn uintRand(max: u32) u32 {
+    return rand.random().uintAtMost(u32, max);
+}
+
 fn randomScene(scene: *HittableList) !void {
     // Add floor
     const material_ground = Material.makeLambertian(Vec3.init(0.5, 0.5, 0.5));
-    try scene.*.add(Sphere.init(.{ 0, -1000.0,  0}, 1000.0, material_ground));  
+    try scene.*.add(Shape.stationarySphere(.{ 0, -1000.0, 0 }, 1000.0, material_ground));
 
     var a: i64 = -11;
-    while (a < 11):(a+=1) {
+    while (a < 11) : (a += 1) {
         var b: i64 = -11;
-        while (b < 11):(b+=1) {
-            
-            const choose_mat = floatRand(0,1);
+        while (b < 11) : (b += 1) {
+            const choose_mat = floatRand(0, 1);
             const center = point(
-                @intToFloat(f64, a) + 0.9*floatRand(0, 1),
+                @intToFloat(f64, a) + 0.9 * floatRand(0, 1),
                 0.2,
-                @intToFloat(f64, b) + 0.9*floatRand(0, 1),
-                );
-            if(Vec3.length(center - point(4, 0.2, 0)) > 0.9) {
+                @intToFloat(f64, b) + 0.9 * floatRand(0, 1),
+            );
+            if (Vec3.length(center - point(4, 0.2, 0)) > 0.9) {
                 var sphere_material: Material = undefined;
 
-                if(choose_mat < 0.8) {
+                if (choose_mat < 0.8) {
                     // Diffuse
                     const albedo = Vec3.random(0, 1) * Vec3.random(0, 1);
                     sphere_material = Material.makeLambertian(albedo);
-                    try scene.*.add(Sphere.init(center, 0.2, sphere_material));
+                    const centerEnd = center + Vec3.init(0, floatRand(0, 0.5), 0);
+                    try scene.*.add(Shape.movingSphere(center, centerEnd, 0.0, 1.0, 0.2, sphere_material));
                 } else if (choose_mat < 0.95) {
-                    // Metal 
+                    // Metal
                     const albedo = Vec3.random(0.5, 1) * Vec3.random(0.5, 1);
                     var fuzz = floatRand(0, 0.5);
                     sphere_material = Material.makeMetal(albedo, fuzz);
-                    try scene.*.add(Sphere.init(center, 0.2, sphere_material));
+                    try scene.*.add(Shape.stationarySphere(center, 0.2, sphere_material));
                 } else {
                     // glass
                     sphere_material = Material.makeDialectric(1.5);
-                    try scene.*.add(Sphere.init(center, 0.2, sphere_material));
+                    try scene.*.add(Shape.stationarySphere(center, 0.2, sphere_material));
                 }
             }
         }
@@ -61,37 +64,27 @@ fn randomScene(scene: *HittableList) !void {
     const lambertian_mat = Material.makeLambertian(point(0.4, 0.2, 0.1));
     const metal_mat = Material.makeMetal(point(0.7, 0.6, 0.5), 0.0);
 
-    try scene.*.add(Sphere.init(point(-4,1,0), 1.0, lambertian_mat));
-    try scene.*.add(Sphere.init(point(0,1,0), 1.0, dialectric_mat));
-    try scene.*.add(Sphere.init(point(4,1,0), 1.0, metal_mat));
+    try scene.*.add(Shape.stationarySphere(point(-4, 1, 0), 1.0, lambertian_mat));
+    try scene.*.add(Shape.stationarySphere(point(0, 1, 0), 1.0, dialectric_mat));
+    try scene.*.add(Shape.stationarySphere(point(4, 1, 0), 1.0, metal_mat));
 }
 
 pub fn main() !void {
 
     // Image specs
-    const aspect_ratio = 3.0/2.0;
-    const width = 1200;
+    const aspect_ratio = 16.0 / 9.0;
+    const width = 400;
     const height = @floatToInt(usize, (@intToFloat(f64, width) / aspect_ratio));
-    const samples = 500; 
+    const samples = 100;
     const max_depth = 50;
-    const thread_amount = 4;
-    const slice_length = height / thread_amount;
-    var threads: [4]std.Thread = undefined;
 
     // Render & Utils
     // Output the .ppm file
-    var file = try std.fs.cwd().createFile("output.ppm",  .{});
+    var file = try std.fs.cwd().createFile("output.ppm", .{});
     defer file.close();
-    try file.writer().print("P3\n{} {}\n255\n", .{width, height});
+    try file.writer().print("P3\n{} {}\n255\n", .{ width, height });
 
-    // The image renderer that almost kinda sorta works
-    //_ = c.SDL_Init(c.SDL_INIT_VIDEO);
-    //const window = c.SDL_CreateWindow("Awesome Raytracer", c.SDL_WINDOWPOS_UNDEFINED, c.SDL_WINDOWPOS_UNDEFINED, width, height, c.SDL_WINDOW_SHOWN);
-    //const renderer = c.SDL_CreateRenderer(window, -1, 0);
-    //defer c.SDL_DestroyWindow(window);
-    //defer c.SDL_DestroyRenderer(renderer);
-    //defer c.SDL_Quit();
-    // RNG for future purposes. 
+    // RNG for future purposes.
     rand = RndGen.init(@intCast(u64, time.nanoTimestamp()));
 
     // World Initialization
@@ -107,24 +100,20 @@ pub fn main() !void {
     const vup = Vec3.init(0, 1, 0);
     const focus_dist: f64 = 10.0;
     const aperture: f64 = 0.1;
-    var cam = Camera.init(lookfrom, lookat, vup, 20, aspect_ratio, aperture, focus_dist);
+    var cam = Camera.init(lookfrom, lookat, vup, 20, aspect_ratio, aperture, focus_dist, 0.0, 1.0);
 
     // Main loop
     for (0..height) |row| {
-        std.debug.print("There are {} rows left to render\n", .{height-row});
+        std.debug.print("There are {} rows left to render\n", .{height - row});
         for (0..width) |col| {
             var pixel_color = black;
             for (0..samples) |_| {
-                const u = (@intToFloat(f64, col)+floatRand(0,1))/@intToFloat(f64, width-1);
-                const v = (@intToFloat(f64, height-row)+floatRand(0,1))/@intToFloat(f64, height-1);
+                const u = (@intToFloat(f64, col) + floatRand(0, 1)) / @intToFloat(f64, width - 1);
+                const v = (@intToFloat(f64, height - row) + floatRand(0, 1)) / @intToFloat(f64, height - 1);
                 const r = cam.getRay(u, v);
                 pixel_color += Ray.rayColor(r, &scene, max_depth); // Store all the values returned from rayColor
             }
-           //try color.renderColor(renderer, file.writer(), pixel_color, samples, col, height - row);
-           try color.renderColor(file.writer(), pixel_color, samples, col, height - row);
+            try color.renderColor(file.writer(), pixel_color, samples, col, height - row);
         }
-        //_ = c.SDL_RenderPresent(renderer);
     }
-    //c.SDL_Delay(100000);
 }
-

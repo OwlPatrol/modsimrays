@@ -1,6 +1,6 @@
 const std = @import("std");
 pub const Vec3 = @Vector(3, f64);
-const main = @import("main.zig");
+const floatRand = @import("main.zig").floatRand;
 
 
 /// Constructor for a Vec3
@@ -14,16 +14,16 @@ pub fn init(x: f64, y: f64, z: f64) Vec3 {
 
 pub fn random(min:f64, max:f64) Vec3 {
     return Vec3 {
-        main.floatRand(min, max),
-        main.floatRand(min, max),
-        main.floatRand(min, max),
+        floatRand(min, max),
+        floatRand(min, max),
+        floatRand(min, max),
     };
 }
 
 pub fn randomInUnitSphere() Vec3 {
-    const r = main.floatRand(0, 1);
-    const theta = main.floatRand(0, 1)*2*std.math.pi;
-    const phi = main.floatRand(0, 1)*std.math.pi;
+    const r = floatRand(0, 1);
+    const theta = floatRand(0, 1)*2*std.math.pi;
+    const phi = floatRand(0, 1)*std.math.pi;
     return init(r*@cos(theta)*@sin(phi), r*@sin(theta)*@sin(phi), r*@cos(phi));
 }
 
@@ -43,8 +43,8 @@ pub fn randomUnitVectorInHemisphere(normal: Vec3) Vec3 {
 }
 
 pub fn randomInUnitDisc() Vec3 {
-    const r = main.floatRand(0, 1);
-    const theta = main.floatRand(0, 1)*2*std.math.pi;
+    const r = floatRand(0, 1);
+    const theta = floatRand(0, 1)*2*std.math.pi;
     return init(r*@cos(theta), r*@sin(theta), 0);
 }
 

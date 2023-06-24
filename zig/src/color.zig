@@ -11,9 +11,7 @@ pub fn renderColor(writer: anytype, col: @Vector(3, f64), samples: f64, x: usize
     var g = @floatToInt(u8, multiSample(col[1]*scale));
     var b = @floatToInt(u8, multiSample(col[2]*scale));
     try writer.print("{} {} {}\n", .{r, g, b});
-    _ = x + y;  
-    //_ = c.SDL_SetRenderDrawColor(renderer, r, g, b, 255);
-    //_ = c.SDL_RenderDrawPoint(renderer, @intCast(c_int, x), @intCast(c_int,y));
+    _ = x + y;
 }
 
 fn clamp(x: f64, min: f64, max: f64) f64 {
