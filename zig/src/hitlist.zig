@@ -38,6 +38,12 @@ pub const HittableList = struct {
         try self.add(ListElem{.tree = tree});
     }
 
+    pub fn addList(self: *HittableList, other_list: HittableList) !void {
+        for (other_list.objects.items) |item| {
+            try self.add(item);
+        }
+    }
+
     fn add(self: *HittableList, object: ListElem) !void {
         try self.*.objects.append(object);
     }

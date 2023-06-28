@@ -10,7 +10,7 @@ pub fn renderColor(writer: anytype, col: @Vector(3, f64), samples: f64, x: usize
     var r = @floatToInt(u8, multiSample(col[0]*scale));
     var g = @floatToInt(u8, multiSample(col[1]*scale));
     var b = @floatToInt(u8, multiSample(col[2]*scale));
-    try writer.print("{} {} {}", .{r, g, b});
+    try writer.print("{} {} {}\n", .{r, g, b});
     _ = x + y;
 }
 
