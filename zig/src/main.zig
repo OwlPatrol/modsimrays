@@ -5,7 +5,7 @@ const color = @import("color.zig");
 const HittableList = @import("hitlist.zig").HittableList;
 const Shape = @import("shapes.zig").Shape;
 const BoundingBox = @import("boundingBox.zig").BoundingBox;
-const BvhTree = @import("BvhTree.zig").BvhTree;
+const BvhTree = @import("BvhTree.zig").Tree;
 const Camera = @import("camera.zig").Camera;
 const Material = @import("materials.zig").Material;
 const point = Vec3.init;
@@ -66,8 +66,8 @@ pub fn main() !void {
     const aspect_ratio = 16.0 / 9.0;
     const width = 400;
     const height = @floatToInt(usize, (@intToFloat(f64, width) / aspect_ratio));
-//    const samples = 500;
-//    const max_depth = 50;
+    const samples = 500;
+    const max_depth = 50;
 
 
     // Render & Utils
@@ -86,8 +86,9 @@ pub fn main() !void {
     var scene = HittableList.init(alloc);
     defer temp.destroy();
     defer scene.destroy(); // Defer this to happen at the closing bracket of the main functionWS
-    try randomScene(&scene);
-    
+    try randomScene(&temp);
+    var tree = BvhTree.init(0, 1, 0, @intCast(u32, temp.objects.items.len), &temp);
+    try scene.addTree(tree.*);
 
     // Add floor
     const material_ground = Material.makeLambertian(Vec3.init(0.5, 0.5, 0.5));
@@ -107,20 +108,20 @@ pub fn main() !void {
     const vup = Vec3.init(0, 1, 0);
     const focus_dist: f64 = 10.0;
     const aperture: f64 = 0.1;
-    _ = Camera.init(lookfrom, lookat, vup, 20, aspect_ratio, aperture, focus_dist, 0.0, 1.0);
+    var cam = Camera.init(lookfrom, lookat, vup, 20, aspect_ratio, aperture, focus_dist, 0.0, 1.0);
 
     // Main loop
-//    for (0..height) |row| {
-//        std.debug.print("There are {} rows left to render\n", .{height - row});
-//        for (0..width) |col| {
-//            var pixel_color = black;
-//            for (0..samples) |_| {
-//                const u = (@intToFloat(f64, col) + floatRand(0, 1)) / @intToFloat(f64, width - 1);
-//                const v = (@intToFloat(f64, height - row) + floatRand(0, 1)) / @intToFloat(f64, height - 1);
-//                const r = cam.getRay(u, v);
-//                pixel_color += Ray.rayColor(r, &scene, max_depth); // Store all the values returned from rayColor
-//            }
-//            try color.renderColor(file.writer(), pixel_color, samples, col, height - row);
-//        }
-//    }
+    for (0..height) |row| {
+        std.debug.print("There are {} rows left to render\n", .{height - row});
+        for (0..width) |col| {
+            var pixel_color = black;
+            for (0..samples) |_| {
+                const u = (@intToFloat(f64, col) + floatRand(0, 1)) / @intToFloat(f64, width - 1);
+                const v = (@intToFloat(f64, height - row) + floatRand(0, 1)) / @intToFloat(f64, height - 1);
+                const r = cam.getRay(u, v);
+                pixel_color += Ray.rayColor(r, &scene, max_depth); // Store all the values returned from rayColor
+            }
+            try color.renderColor(file.writer(), pixel_color, samples, col, height - row);
+        }
+    }
 }

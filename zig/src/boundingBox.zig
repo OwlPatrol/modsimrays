@@ -11,7 +11,6 @@ pub const BoundingBox = struct {
     max: Point,
 
     pub fn hit(self: BoundingBox, ray: Ray, t_min: f64, t_max: f64) bool {
-        std.debug.print("Box.hit", .{});
         for (0..3) |a| {
             const t0 = @min(self.min[a] - ray.origin[a] / ray.dir[a], self.max[a] - ray.origin[a] / ray.dir[a]);
             const t1 = @max(self.min[a] - ray.origin[a] / ray.dir[a], self.max[a] - ray.origin[a] / ray.dir[a]);

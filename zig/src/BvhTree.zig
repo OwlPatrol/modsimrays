@@ -5,7 +5,7 @@ const Ray = @import("ray.zig").Ray;
 const HitRecord = @import("hitRecord.zig").HitRecord;
 const HittableList = @import("hitlist.zig").HittableList;
 const ListElem = @import("hitlist.zig").ListElem;
-const uintRand = @import("main.zig").uintRand;
+const uintRand = @import("main.zig").u32Rand;
 const sort = std.sort.sort;
 
 
@@ -79,7 +79,7 @@ pub const Tree = union(enum) {
             .node = BvhNode {
                 .left = init(timeStart, timeEnd, start, mid, list),
                 .right = init(timeStart, timeEnd, mid, end, list),
-                .box = list.boundingBox(timeStart, timeEnd, start, end),
+                .box = list.bounding(timeStart, timeEnd, start, end),
             }
         };
     }

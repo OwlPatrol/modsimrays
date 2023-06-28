@@ -1,5 +1,4 @@
 const std = @import("std");
-const print = std.debug.print;
 const Scene = @import("scene.zig").Scene;
 const Vec3 = @import("vector.zig");
 const HitRecord = @import("hitrecord.zig").HitRecord;

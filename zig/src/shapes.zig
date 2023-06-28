@@ -11,7 +11,6 @@ const sort = std.sort.sort;
 const acos = std.math.acos;
 const atan2 = std.math.atan2;
 const pi = std.math.pi;
-const print = std.debug.print;
 
 pub const Shape = union(enum) {
     sphere: Sphere,
