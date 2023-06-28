@@ -13,11 +13,11 @@ pub const Material = union(enum) {
 
     /// Generalized scatter() function. Will call the relevant scatter function depending on what material it is
     pub fn scatter(self: Material, ray_in: Ray, hit_rec: *HitRecord, attenuation: *@Vector(3, f64), scattered: *Ray) bool {
-        switch (self) {
-            .lambertian => return self.lambertian.scatter(ray_in, hit_rec, attenuation, scattered),
-            .metal => return self.metal.scatter(ray_in, hit_rec, attenuation, scattered),
-            .dialectric => return self.dialectric.scatter(ray_in, hit_rec, attenuation, scattered),
-        }
+        return switch (self) {
+            .lambertian => |l| l.scatter(ray_in, hit_rec, attenuation, scattered),
+            .metal => |m| m.scatter(ray_in, hit_rec, attenuation, scattered),
+            .dialectric => |d| d.scatter(ray_in, hit_rec, attenuation, scattered),
+        };
     }
 
     pub fn makeLambertian(color: @Vector(3, f64)) Material {

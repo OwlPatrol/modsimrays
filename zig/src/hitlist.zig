@@ -5,22 +5,19 @@ const color = @import("color.zig");
 const HitRecord = @import("hitRecord.zig").HitRecord;
 const Shape = @import("shapes.zig").Shape;
 const BoundingBox = @import("boundingBox.zig").BoundingBox;
-const Tree = @import("BvhTree.zig").Tree;
+const Bvh = @import("bvh.zig").Tree;
 const ArrayList = std.ArrayList(ListElem);
 const Allocator = std.mem.Allocator;
 const Point = Vec3.init;   
 
-
-const ListErr = error{NegativeIndex, OutOfBounds, IncorrectIndices};
-
 pub const ListElem = union(enum) {
-    tree: Tree,
+    tree: Bvh,
     shape: Shape,
 
     pub fn hit(self: ListElem, ray: Ray, t_min: f64, t_max: f64, rec: *HitRecord) bool {
         return switch(self) {
-            .tree => self.tree.hit(ray, t_min, t_max, rec),
-            .shape => self.shape.hit(ray, t_min, t_max, rec),
+            .tree => |tree| tree.hit(ray, t_min, t_max, rec),
+            .shape => |shape| shape.hit(ray, t_min, t_max, rec),
         };
     }
 };
@@ -33,12 +30,12 @@ pub const HittableList = struct {
         return HittableList{.objects = ArrayList.init(all)};
     }
 
-    pub fn addShape (self: *HittableList, object: Shape) !void {
-        try add(self, ListElem {.shape = object});
+    pub fn addShape(self: *HittableList, shape: Shape) !void {
+        try self.add(ListElem{.shape = shape});
     }
 
-    pub fn addTree (self: *HittableList, object: Tree) !void {
-        try add(self, ListElem{.tree = object});
+    pub fn addTree(self: *HittableList, tree: Bvh) !void {
+        try self.add(ListElem{.tree = tree});
     }
 
     fn add(self: *HittableList, object: ListElem) !void {

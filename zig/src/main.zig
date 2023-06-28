@@ -5,7 +5,7 @@ const color = @import("color.zig");
 const HittableList = @import("hitlist.zig").HittableList;
 const Shape = @import("shapes.zig").Shape;
 const BoundingBox = @import("boundingBox.zig").BoundingBox;
-const BvhTree = @import("BvhTree.zig").Tree;
+const Bvh = @import("bvh.zig").Tree;
 const Camera = @import("camera.zig").Camera;
 const Material = @import("materials.zig").Material;
 const point = Vec3.init;
@@ -43,17 +43,17 @@ fn randomScene(scene: *HittableList) !void {
                     const albedo = Vec3.random(0, 1) * Vec3.random(0, 1);
                     sphere_material = Material.makeLambertian(albedo);
                     const centerEnd = center + Vec3.init(0, floatRand(0, 0.5), 0);
-                    try scene.*.addShape(Shape.movingSphere(center, centerEnd, 0.0, 1.0, 0.2, sphere_material));
+                    try scene.addShape(Shape.movingSphere(center, centerEnd, 0.0, 1.0, 0.2, sphere_material));
                 } else if (choose_mat < 0.95) {
                     // Metal
                     const albedo = Vec3.random(0.5, 1) * Vec3.random(0.5, 1);
                     var fuzz = floatRand(0, 0.5);
                     sphere_material = Material.makeMetal(albedo, fuzz);
-                    try scene.*.addShape(Shape.stationarySphere(center, 0.2, sphere_material));
+                    try scene.addShape(Shape.stationarySphere(center, 0.2, sphere_material));
                 } else {
                     // glass
                     sphere_material = Material.makeDialectric(1.5);
-                    try scene.*.addShape(Shape.stationarySphere(center, 0.2, sphere_material));
+                    try scene.addShape(Shape.stationarySphere(center, 0.2, sphere_material));
                 }
             }
         }
@@ -87,8 +87,8 @@ pub fn main() !void {
     defer temp.destroy();
     defer scene.destroy(); // Defer this to happen at the closing bracket of the main functionWS
     try randomScene(&temp);
-    var tree = BvhTree.init(0, 1, 0, @intCast(u32, temp.objects.items.len), &temp);
-    try scene.addTree(tree.*);
+    try scene.addTree(Bvh.init(0, 1, &temp));
+
 
     // Add floor
     const material_ground = Material.makeLambertian(Vec3.init(0.5, 0.5, 0.5));

@@ -38,15 +38,15 @@ pub const Shape = union(enum) {
         var radius: f64 = undefined;
         var material: Material = undefined;
         switch (self) {
-            .sphere => {
-                center = self.sphere.center;
-                radius = self.sphere.radius;
-                material = self.sphere.material;
+            .sphere => |sphere| {
+                center = sphere.center;
+                radius = sphere.radius;
+                material = sphere.material;
             },
-            .moving_sphere => {
-                center = self.moving_sphere.center(ray.time);
-                radius = self.moving_sphere.radius;
-                material = self.moving_sphere.material;
+            .moving_sphere => |moving_sphere| {
+                center = moving_sphere.center(ray.time);
+                radius = moving_sphere.radius;
+                material = moving_sphere.material;
             },
         }
         const oc = ray.origin - center;
