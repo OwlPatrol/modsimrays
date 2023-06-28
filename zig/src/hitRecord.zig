@@ -8,6 +8,8 @@ pub const HitRecord = struct {
     normal: @Vector(3, f64),
     material: Material, // Could become issue
     t: f64,
+    u: f64,
+    v: f64,
     front_face: bool,
 
     pub fn init() HitRecord {
@@ -16,6 +18,8 @@ pub const HitRecord = struct {
             .normal = Vec3.init(0, 0, 0),
             .material = undefined,
             .t = 0,
+            .u = 0,
+            .v = 0,
             .front_face = true,
         };
     }

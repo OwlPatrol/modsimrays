@@ -2,7 +2,7 @@
 /// 
 /// 
 /// 
-
+const std = @import("std");
 const Point = @Vector(3, f64);
 const Ray = @import("ray.zig").Ray;
 
@@ -10,7 +10,8 @@ pub const BoundingBox = struct {
     min: Point,
     max: Point,
 
-    pub fn _hit(self: BoundingBox, ray: Ray, t_min: f64, t_max: f64) bool {
+    pub fn hit(self: BoundingBox, ray: Ray, t_min: f64, t_max: f64) bool {
+        std.debug.print("Box.hit", .{});
         for (0..3) |a| {
             const t0 = @min(self.min[a] - ray.origin[a] / ray.dir[a], self.max[a] - ray.origin[a] / ray.dir[a]);
             const t1 = @max(self.min[a] - ray.origin[a] / ray.dir[a], self.max[a] - ray.origin[a] / ray.dir[a]);
@@ -21,7 +22,7 @@ pub const BoundingBox = struct {
         return true;
     }
 
-    pub fn hit(self: BoundingBox, ray: Ray, t_min: f64, t_max: f64) bool {
+    pub fn _hit(self: BoundingBox, ray: Ray, t_min: f64, t_max: f64) bool {
         for (0..3) |a| {
             const invD = 1.0 / ray.dir[a];
             var t0 = invD * (self.min[a] - ray.origin[a]);
@@ -36,5 +37,11 @@ pub const BoundingBox = struct {
             if(max <= min) return false;
         }
         return true;
+    }
+
+    pub fn surroundingBox(box0: BoundingBox, box1: BoundingBox) BoundingBox {
+        const small = @min(box0.min, box1.min);
+        const big = @max(box0.max, box1.max);
+        return BoundingBox {.min = small, .max = big};
     }
 };

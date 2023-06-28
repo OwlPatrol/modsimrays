@@ -4,10 +4,12 @@ const Ray = @import("ray.zig").Ray;
 const color = @import("color.zig");
 const HitRecord = @import("hitRecord.zig").HitRecord;
 const Shape = @import("shapes.zig").Shape;
-const BoundingBox = @import("boundingBox.zig");
+const BoundingBox = @import("boundingBox.zig").BoundingBox;
 const ArrayList = std.ArrayList(Shape);
 const Allocator = std.mem.Allocator;
 const Point = Vec3.init;    
+
+const ListErr = error{NegativeIndex, OutOfBounds, IncorrectIndices};
 
 pub const HittableList = struct {
 
@@ -17,7 +19,11 @@ pub const HittableList = struct {
         return HittableList{.objects = ArrayList.init(all)};
     }
 
-    pub fn add(self: *HittableList, object: Shape) !void {
+    pub fn addShape (self: *HittableList, object: Shape) !void {
+        try add(self, object);
+    }
+
+    fn add(self: *HittableList, object: Shape) !void {
         try self.*.objects.append(object);
     }
 
@@ -34,6 +40,7 @@ pub const HittableList = struct {
     }
 
     pub fn hit(self: HittableList, ray: Ray, t_min: f64, t_max: f64, rec: *HitRecord) bool {
+        //std.debug.print("List.hit", .{});
         var temp_rec = HitRecord.init();
         var rec_pointer: *HitRecord = &temp_rec;
         var hit_anything: bool = false;
@@ -49,24 +56,23 @@ pub const HittableList = struct {
         return hit_anything;
     }
 
-    pub fn boundingBox(self: HittableList, timeStart: f64, timeEnd: f64, box: *BoundingBox) bool {
-        if(self.items.len == 0) return false;
+    pub fn bounding(self: HittableList, timeStart: f64, timeEnd: f64, start: u32, end: u32) BoundingBox {
+        //if(self.objects.items.len <= end or self.objects.items.len <= start) return ListErr.OutOfBounds;
+        //if(start < 0 or end < 0) return ListErr.NegativeIndex;
+        //if(end < start) return ListErr.IncorrectIndices;
+
         var temp_box: BoundingBox = undefined;
         var first_box = true;
 
-        for (self.objects) |object| {
-            if(!object.*.boundingBox(timeStart, timeEnd, temp_box)) return false;
+        for (start..end) |i| {
+            const shape = self.objects.items[i].shape;
             if (first_box) {
-                box.*.min = temp_box.min;
-                box.*.max = temp_box.max;
+                temp_box = shape.bounding(timeStart, timeEnd);
                 first_box = false;
             } else {
-                const surr = box.surroundingBox(temp_box);
-                box.*.min = surr.min;
-                box.*.max = surr.max;
-            } 
+                temp_box = temp_box.surroundingBox(shape.bounding(timeStart, timeEnd));
+            }
         }
-
-        return true;
+        return temp_box;
     }
 };

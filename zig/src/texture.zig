@@ -16,6 +16,14 @@ pub const Texture = union(enum) {
 }
 
 pub const SolidColor = struct {
-    color_value
+    color_value: ColorValue,
+
+    pub fn solidColor(r: f64, g: f64, b: f64) SolidColor {
+        return SolidColor {.color_value = ColorValue {r, g, b}};
+    }
+
+    pub fn colorValue(self: SolidColor, u:f64, v: f64, p: *Point) ColorValue {
+        return self.color_value;
+    }
 
 }

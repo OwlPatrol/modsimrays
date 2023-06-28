@@ -31,7 +31,7 @@ pub const Ray = struct {
         if (scene.hit(self, 0.001, std.math.floatMax(f32), &hit_rec)) {
             const target: @Vector(3, f32) = hit_rec.p + hit_rec.normal + Vec3.random();
             var sus = Vec3.scalar(color(Ray.init(hit_rec.p, (target - hit_rec.p)), scene, depth - 1), 0.5);
-            print("Hit\n", .{});
+            print("Hit", .{});
             return sus;
         } else {
             print("No hit", .{});
