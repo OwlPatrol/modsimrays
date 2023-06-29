@@ -23,6 +23,17 @@ pub fn u32Rand(max: u32) u32 {
     return rand.random().uintAtMost(u32, max);
 }
 
+fn tinyScene(scene: *HittableList) !void {
+    for(0..10) |_| {
+        const center = point(@intToFloat(f64, u32Rand(11)) + 0.9 * floatRand(0, 1), 0.2, @intToFloat(f64, u32Rand(11)) + 0.9 * floatRand(0, 1),
+            );
+        const albedo = Vec3.random(0.5, 1) * Vec3.random(0.5, 1);
+        var fuzz = floatRand(0, 0.5);
+        const sphere_material = Material.makeMetal(albedo, fuzz);
+        try scene.addShape(Shape.stationarySphere(center, 0.2, sphere_material));
+    }
+}
+
 fn randomScene(scene: *HittableList) !void {
 
     var a: i64 = -11;
@@ -42,8 +53,9 @@ fn randomScene(scene: *HittableList) !void {
                     // Diffuse
                     const albedo = Vec3.random(0, 1) * Vec3.random(0, 1);
                     sphere_material = Material.makeLambertian(albedo);
-                    const centerEnd = center + Vec3.init(0, floatRand(0, 0.5), 0);
-                    try scene.addShape(Shape.movingSphere(center, centerEnd, 0.0, 1.0, 0.2, sphere_material));
+                    //const centerEnd = center + Vec3.init(0, floatRand(0, 0.5), 0);
+                    //try scene.addShape(Shape.movingSphere(center, centerEnd, 0.0, 1.0, 0.2, sphere_material));
+                    try scene.addShape(Shape.stationarySphere(center, 0.2, sphere_material));
                 } else if (choose_mat < 0.95) {
                     // Metal
                     const albedo = Vec3.random(0.5, 1) * Vec3.random(0.5, 1);
@@ -63,10 +75,10 @@ fn randomScene(scene: *HittableList) !void {
 pub fn main() !void {
 
     // Image specs
-    const aspect_ratio = 16.0 / 9.0;
-    const width = 400;
+    const aspect_ratio = 3.0 / 2.0;
+    const width = 1200;
     const height = @floatToInt(usize, (@intToFloat(f64, width) / aspect_ratio));
-    const samples = 500;
+    const samples = 100;
     const max_depth = 50;
 
 
@@ -87,8 +99,6 @@ pub fn main() !void {
     defer temp.destroy();
     defer scene.destroy(); // Defer this to happen at the closing bracket of the main functionWS
     try randomScene(&temp);
-    try scene.addTree(Bvh.init(0, 1, &temp));
-
 
     // Add floor
     const material_ground = Material.makeLambertian(Vec3.init(0.5, 0.5, 0.5));
@@ -102,6 +112,9 @@ pub fn main() !void {
     try scene.addShape(Shape.stationarySphere(point(0, 1, 0), 1.0, dialectric_mat));
     try scene.addShape(Shape.stationarySphere(point(4, 1, 0), 1.0, metal_mat));
 
+    var tree = try Bvh.init(0, 1, &temp);
+    try scene.addTree(tree);
+    defer tree.destroy();
     // Camera
     const lookfrom = point(13, 2, 3);
     const lookat = point(0, 0, 0);

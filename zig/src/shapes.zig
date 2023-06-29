@@ -33,7 +33,6 @@ pub const Shape = union(enum) {
     }
 
     pub fn hit(self: Shape, ray: Ray, t_min: f64, t_max: f64, rec: *HitRecord) bool {
-        //std.debug.print("Shape.hit", .{});
         var center: Point = undefined;
         var radius: f64 = undefined;
         var material: Material = undefined;
@@ -63,7 +62,7 @@ pub const Shape = union(enum) {
             root = sqrtd - b;
             if (root < t_min or t_max < root) return false;
         }
-        rec.*.t = root;
+        if (root < rec.*.t) rec.*.t = root;
         rec.*.p = ray.at(rec.*.t);
         rec.*.material = material;
         var out_normal = Vec3.div((rec.*.p - center), radius);

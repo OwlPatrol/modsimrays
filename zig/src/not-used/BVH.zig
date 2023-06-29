@@ -43,7 +43,6 @@ pub const BvhNode = struct {
     }
 
     pub fn initSlice(timeStart: f64, timeEnd:f64, start: u32, end: u32, list: *HittableList) Shape {
-        std.debug.print("Hi!", .{});
         const axis = uintRand(2);
     
         const objects = list.*.objects.items;

@@ -61,7 +61,6 @@ pub const HittableList = struct {
     }
 
     pub fn hit(self: HittableList, ray: Ray, t_min: f64, t_max: f64, rec: *HitRecord) bool {
-        //std.debug.print("List.hit", .{});
         var temp_rec = HitRecord.init();
         var rec_pointer: *HitRecord = &temp_rec;
         var hit_anything: bool = false;

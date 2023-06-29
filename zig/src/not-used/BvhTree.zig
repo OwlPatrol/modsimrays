@@ -42,7 +42,6 @@ pub const Tree = union(enum) {
     leaf: *Shape,
 
     pub fn hit(self: Tree, ray: Ray, t_min: f64, t_max: f64, rec: *HitRecord) bool {
-        //std.debug.print("Tree.hit", .{});
         switch(self) {
             .leaf => return self.leaf.*.hit(ray, t_min, t_max, rec),
             .node => return self.node.hit(ray, t_min, t_max, rec),
@@ -91,7 +90,6 @@ const BvhNode = struct {
     box: BoundingBox,
 
     pub fn hit(self: BvhNode, ray: Ray, t_min: f64, t_max: f64, rec: *HitRecord) bool {
-        //std.debug.print("BvhNode.hit", .{});
         if(!self.box.hit(ray, t_min, t_max)) return false;
         return self.left.*.hit(ray, t_min, t_max, rec) or self.right.*.hit(ray, t_min, t_max, rec);
     }
