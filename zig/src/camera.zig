@@ -2,7 +2,7 @@ const std = @import("std");
 const Ray = @import("ray.zig").Ray;
 const Vec3 = @import("Vec3.zig");
 const Point = @Vector(3, f64);
-const floatRand = @import("main.zig").floatRand;
+const floatRand = @import("utils.zig").floatRand;
 
 pub const Camera = struct {
     origin: Point,

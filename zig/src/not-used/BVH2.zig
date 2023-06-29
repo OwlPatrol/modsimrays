@@ -4,7 +4,7 @@ const BoundingBox = @import("boundingBox.zig").BoundingBox;
 const Ray = @import("ray.zig").Ray;
 const Shape = @import("shapes.zig").Shape;
 const HitRecord = @import("hitRecord.zig").HitRecord;
-const u32Rand = @import("main.zig").u32Rand;
+const u32Rand = @import("utils.zig").u32Rand;
 const sort = std.sort.sort;
 
 const Hittable = union(enum) {

@@ -5,37 +5,49 @@ const HitRecord = @import("hitRecord.zig").HitRecord;
 const Material = @import("materials.zig").Material;
 const BoundingBox = @import("boundingBox.zig").BoundingBox;
 const Point = @Vector(3, f64);
-const HittableList = @import("hitlist.zig").HittableList;
-const uintRand = @import("main.zig").uintRand;
+const uintRand = @import("utils.zig").uintRand;
+const page = std.heap.page_allocator;
 const sort = std.sort.sort;
 const acos = std.math.acos;
 const atan2 = std.math.atan2;
 const pi = std.math.pi;
 
 pub const Shape = union(enum) {
-    sphere: Sphere,
-    moving_sphere: MovingSphere,
+    sphere: *Sphere,
+    moving_sphere: *MovingSphere,
 
-    pub fn stationarySphere(center: Point, radius: f64, material: Material) Shape {
-        return Shape{ .sphere = Sphere{ .center = center, .radius = radius, .material = material } };
+    pub fn stationarySphere(center: Point, radius: f64, material: *Material) !*Shape {
+        const shapeptr = try page.create(Shape);
+        const sphereptr = try page.create(Sphere);
+        sphereptr.* = Sphere{ .center = center, .radius = radius, .material = material };
+        shapeptr.* = Shape{ .sphere =  sphereptr};
+        return shapeptr;
     }
 
-    pub fn movingSphere(centerStart: Point, centerStop: Point, timeStart: f64, timeStop: f64, radius: f64, material: Material) Shape {
-        return Shape{ .moving_sphere = MovingSphere{ .centerStart = centerStart, .centerStop = centerStop, .timeStart = timeStart, .timeStop = timeStop, .radius = radius, .material = material } };
+    pub fn destroy(self: *Shape) void {
+        //switch (self.*) {
+        //    .sphere => |s| {
+        //        s.destroy();
+        //    },
+        //    .moving_sphere => |m| {
+        //        m.destroy();
+        //    }
+        //}
+        page.destroy(self);
     }
 
-    fn getUV (self: Shape, rec: *HitRecord) void {
-        _ = rec;
-        switch (self) {
-            //.sphere => self.sphere.getUV(rec),
-            else => return,
-        }
+    pub fn movingSphere(centerStart: Point, centerStop: Point, timeStart: f64, timeStop: f64, radius: f64, material: *Material) !*Shape {
+        const shapeptr = try page.create(Shape);
+        const sphereptr = try page.create(MovingSphere);
+        sphereptr.* = MovingSphere{ .centerStart = centerStart, .centerStop = centerStop, .timeStart = timeStart, .timeStop = timeStop, .radius = radius, .material = material };
+        shapeptr.* = Shape{ .moving_sphere = sphereptr};
+        return shapeptr;
     }
 
     pub fn hit(self: Shape, ray: Ray, t_min: f64, t_max: f64, rec: *HitRecord) bool {
         var center: Point = undefined;
         var radius: f64 = undefined;
-        var material: Material = undefined;
+        var material: *Material = undefined;
         switch (self) {
             .sphere => |sphere| {
                 center = sphere.center;
@@ -62,11 +74,11 @@ pub const Shape = union(enum) {
             root = sqrtd - b;
             if (root < t_min or t_max < root) return false;
         }
-        if (root < rec.*.t) rec.*.t = root;
+        rec.*.t = root;
         rec.*.p = ray.at(rec.*.t);
-        rec.*.material = material;
+        rec.*.material = material.*;
         var out_normal = Vec3.div((rec.*.p - center), radius);
-        self.getUV(rec);
+        Sphere.getUV(out_normal, rec);
         rec.setFaceNormal(ray, out_normal);
         return true;
     }
@@ -82,11 +94,16 @@ pub const Shape = union(enum) {
 pub const Sphere = struct {
     center: Point,
     radius: f64,
-    material: Material,
+    material: *Material,
+    
+    pub fn destroy(self: *Sphere) void {
+        //self.*.material.destroy();
+        page.destroy(self);
+    }
 
-    pub fn getUV(self: Sphere, rec:  *HitRecord) void {
-        const theta = acos(-self.center[1]);
-        const phi = atan2(f64, -self.center[2], self.center[0] + std.math.pi);
+    pub fn getUV(point: Point, rec:  *HitRecord) void {
+        const theta = acos(-point[1]);
+        const phi = atan2(f64, -point[2], point[0] + std.math.pi);
         rec.*.u = phi / (2*pi);
         rec.*.v = theta/pi;
     }
@@ -106,7 +123,12 @@ pub const MovingSphere = struct {
     timeStart: f64,
     timeStop: f64,
     radius: f64,
-    material: Material,
+    material: *Material,
+
+    pub fn destroy(self: MovingSphere) void {
+        //self.material.destroy();
+        page.destroy(self);
+    }
 
     pub fn center(self: MovingSphere, time: f64) @Vector(3, f64) {
         // Possible cause of errors, assumes time1 > time0

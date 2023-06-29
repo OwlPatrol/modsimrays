@@ -6,12 +6,12 @@ const Shape = @import("shapes.zig").Shape;
 const ListElem = @import("hitlist.zig").ListElem;
 const HitRecord = @import("hitRecord.zig").HitRecord;
 const Allocator = std.mem.Allocator;
-const ArrayList = std.ArrayList(Tree);
-const u32Rand = @import("main.zig").u32Rand;
+const u32Rand = @import("utils.zig").u32Rand;
 const sort = std.sort.sort;
+const page = std.heap.page_allocator;
 
 
-fn compareBoxes(a: Shape, b: Shape, axis: u32) bool {
+fn compareBoxes(a: *Shape, b: *Shape, axis: u32) bool {
     return a.bounding(0, 0).min[axis] < b.bounding(0, 0).min[axis];
 }
 
@@ -66,9 +66,9 @@ const Node = union(enum) {
 };
 
 pub const Tree = struct {
-    left: Node,
-    right: Node,
-    box: BoundingBox,
+    left: *Node,
+    right: *Node,
+    box: *BoundingBox,
 
     pub fn print(self: Tree) void {
         std.debug.print("Hi I'm a (sub)tree with this box: {}\n", .{self.box});
@@ -77,19 +77,19 @@ pub const Tree = struct {
     }
 
     pub fn destroy(self: Tree) void {
-        switch (self.left) {
+        switch (self.left.*) {
+            .tree => |t| {
+                t.*.destroy();
+                std.heap.page_allocator.destroy(t);
+            },
+            .shape => |s| s.destroy(),
+        }
+        switch (self.right.*) {
             .tree => |t| {
                 t.*.destroy();
                 std.heap.page_allocator.destroy(t);
             },
             else => std.debug.print("", .{}),
-        }
-        switch (self.right) {
-            .tree => |t| {
-                t.*.destroy();
-                std.heap.page_allocator.destroy(t);
-            },
-            else => std.debug.print("Found a regular node\n", .{})
         }
     }
 
@@ -104,32 +104,39 @@ pub const Tree = struct {
     fn initSlice(timeStart: f64, timeEnd: f64, start: u32, end: u32, hittable_list: *HittableList) !Tree {
         const axis = u32Rand(2);
         const span = end - start;
-        const leftptr = try std.heap.page_allocator.create(Tree);
-        const rightptr = try std.heap.page_allocator.create(Tree);
+        const leftptr = try page.create(Tree);
+        const rightptr = try page.create(Tree);
+        const relem = try page.create(Node);
+        const lelem = try page.create(Node);
+        const box_ptr = try page.create(BoundingBox);
 
 
         var left_tree: Tree = undefined;
         var right_tree: Tree = undefined;
-        var box: BoundingBox = undefined;
         
 
         switch(span) {
             1 => {
-                const elem = Node{.shape = &hittable_list.objects.items[start].shape};
-                return Tree {.left = elem, .right = elem, .box = elem.bounding(timeStart, timeEnd)};
+                const nodeptr = try page.create(Node);
+                const shapeptr = hittable_list.objects.items[start].shape;
+                nodeptr.* = Node{.shape = shapeptr};
+                box_ptr.* = nodeptr.*.bounding(timeStart, timeEnd);
+                return Tree {.left = nodeptr, .right = nodeptr, .box = box_ptr};
             },
             2 => {
-                var relem: Node = undefined;
-                var lelem: Node = undefined;
+                const shape_left = try page.create(Shape);
+                const shape_right = try page.create(Shape);
                 if(compareBoxes(hittable_list.objects.items[start].shape, hittable_list.objects.items[start+1].shape, axis)){
-                    relem = Node{.shape = &hittable_list.objects.items[start].shape};
-                    lelem = Node{.shape = &hittable_list.objects.items[start+1].shape};
+                    shape_left.* = hittable_list.objects.items[start].shape.*;
+                    shape_right.* = hittable_list.objects.items[start+1].shape.*;
                 } else {
-                    relem = Node{.shape = &hittable_list.objects.items[start+1].shape};
-                    lelem = Node{.shape = &hittable_list.objects.items[start].shape};
+                    shape_left.* = hittable_list.objects.items[start+1].shape.*;
+                    shape_right.* = hittable_list.objects.items[start].shape.*;
                 }
-                box = relem.bounding(timeStart, timeEnd).surroundingBox(lelem.bounding(timeStart, timeEnd));
-                return Tree {.left = lelem, .right = relem, .box = box};
+                    lelem.* = Node{.shape = shape_left};
+                    relem.* = Node{.shape = shape_right};
+                box_ptr.* = relem.*.bounding(timeStart, timeEnd).surroundingBox(lelem.bounding(timeStart, timeEnd));
+                return Tree {.left = lelem, .right = relem, .box = box_ptr};
             },
             else => {
                 switch(axis) {
@@ -141,23 +148,30 @@ pub const Tree = struct {
                 const mid = start + span/2;
                 left_tree = try initSlice(timeStart, timeEnd, start, mid, hittable_list);
                 right_tree = try initSlice(timeStart, timeEnd, mid, end, hittable_list);
+                lelem.* = Node {.tree = leftptr};
+                relem.* = Node{.tree = rightptr};
             }
         }
         leftptr.* = left_tree;
         rightptr.* = right_tree;
-        const tree = Tree {.left = Node {.tree = leftptr}, .right = Node{.tree = rightptr}, .box = left_tree.bounding(timeStart, timeEnd).surroundingBox(right_tree.bounding(timeStart, timeEnd))};
-        return tree;
+        box_ptr.* = left_tree.bounding(timeStart, timeEnd).surroundingBox(right_tree.bounding(timeStart, timeEnd));
+        return Tree {.left = lelem, .right = relem, .box = box_ptr};
     }
     
     pub fn hit(self: Tree, ray: Ray, t_min: f64, t_max: f64, rec: *HitRecord) bool {
         if (!self.box.hit(ray, t_min, t_max)) return false;
         const hit_left = self.left.hit(ray, t_min, t_max, rec);
-        const hit_right = self.right.hit(ray, t_min, if(hit_left) rec.t else t_max, rec);
+        var hit_right: bool = undefined;
+        if (hit_left) {
+            hit_right = self.right.hit(ray, t_min, rec.*.t, rec);
+        } else {
+            hit_right = self.right.hit(ray, t_min, t_max, rec);
+        }
         return (hit_left or hit_right);
     }
 
     pub fn bounding(self: Tree, timeStart: f64, timeEnd: f64) BoundingBox {
         _ = timeStart - timeEnd;
-        return self.box;
+        return self.box.*;
     }
 };

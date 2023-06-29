@@ -2,14 +2,15 @@ const std = @import("std");
 const Ray = @import("ray.zig").Ray;
 const HitRecord = @import("hitRecord.zig").HitRecord;
 const Vec3 = @import("Vec3.zig");
-const BoundingBox =  @import("boundingBox.zig");
-const floatRand = @import("main.zig").floatRand;
+const Texture = @import("texture.zig").Texture;
+const floatRand = @import("utils.zig").floatRand;
+ const page = std.heap.page_allocator;
 
 /// Tagged union representing the abstract idea of a material. Can only hold a value in one field at a time.
 pub const Material = union(enum) {
-    lambertian: Lambertian,
-    metal: Metal,
-    dialectric: Dialectric,
+    lambertian: *Lambertian,
+    metal: *Metal,
+    dialectric: *Dialectric,
 
     /// Generalized scatter() function. Will call the relevant scatter function depending on what material it is
     pub fn scatter(self: Material, ray_in: Ray, hit_rec: *HitRecord, attenuation: *@Vector(3, f64), scattered: *Ray) bool {
@@ -20,30 +21,72 @@ pub const Material = union(enum) {
         };
     }
 
-    pub fn makeLambertian(color: @Vector(3, f64)) Material {
-        return Material{ .lambertian = Lambertian.init(color) };
+    //pub fn destroy(self: *Material) void {
+    //    switch(self.*) {
+    //        .lambertian => |l| {
+    //            l.destroy();
+    //        },
+    //        .metal => |m| {
+    //            m.destroy();
+    //        },
+    //        .dialectric => |d| {
+    //            page.destroy(d);
+    //        }
+    //    }
+    //    page.destroy(self);
+    //}
+
+    pub fn makeLambertian(color: @Vector(3, f64)) !*Material {
+        const mat_ptr = try page.create(Material);
+        mat_ptr.* = Material{ .lambertian = try Lambertian.init(color)};
+        return mat_ptr;
     }
 
-    pub fn makeMetal(color: @Vector(3, f64), f: f64) Material {
-        return Material{ .metal = Metal.init(color, f) };
+    pub fn texturedLambertian(texture: *Texture) !*Material {
+        const mat_ptr = try page.create(Material);
+        mat_ptr.* = Material{ .lambertian = try Lambertian.initTextured(texture)};
+        return mat_ptr;
     }
 
-    pub fn makeDialectric(refraction_index: f64) Material {
-        return Material{ .dialectric = Dialectric{ .refraction_index = refraction_index } };
+    pub fn makeMetal(color: @Vector(3, f64), f: f64) !*Material {
+        const mat_ptr = try page.create(Material);
+        mat_ptr.* = Material{ .metal = try Metal.init(color, f) };
+        return mat_ptr;
+    }
+
+    pub fn makeDialectric(refraction_index: f64) !*Material {
+        const mat_ptr = try page.create(Material);
+        const dia_ptr = try page.create(Dialectric);
+        dia_ptr.* = Dialectric{ .refraction_index = refraction_index };
+        mat_ptr.* = Material{ .dialectric = dia_ptr};
+        return mat_ptr;
     }
 };
 
 const Lambertian = struct {
-    albedo: @Vector(3, f64),
+    albedo: *Texture,
 
-    fn init(color: @Vector(3, f64)) Lambertian {
-        return Lambertian{ .albedo = color };
+    fn init(color: @Vector(3, f64)) !*Lambertian {
+        const ptr = try page.create(Lambertian);
+        ptr.* = Lambertian{ .albedo = try Texture.solidColor(color[0], color[1], color[2]) };
+        return ptr;
+    }
+
+    //fn destroy(self: Lambertian) void {
+        //self.albedo.destroy();
+    //    page.destroy(self);
+    //}
+
+    fn initTextured(texture: *Texture) !*Lambertian {
+        const ptr = try page.create(Lambertian);
+        ptr.* = Lambertian{.albedo = texture};
+        return ptr;
     }
 
     fn scatter(self: Lambertian, ray_in: Ray, rec: *HitRecord, attenuation: *@Vector(3, f64), scattered: *Ray) bool {
         const scatter_direction = Vec3.normalize(rec.*.normal + Vec3.randomUnitVectorInHemisphere(rec.*.normal));
         scattered.* = Ray.init(rec.*.p, scatter_direction, ray_in.time);
-        attenuation.* = Vec3.scalar(self.albedo, Vec3.dot(rec.*.normal, scatter_direction));
+        attenuation.* = self.albedo.value(rec.*.u, rec.*.v, rec.*.p);
         return true;
     }
 };
@@ -52,8 +95,14 @@ const Metal = struct {
     albedo: @Vector(3, f64),
     fuzz: f64,
 
-    fn init(color: @Vector(3, f64), f: f64) Metal {
-        return Metal{ .albedo = color, .fuzz = if (f < 1) f else 1 };
+    fn init(color: @Vector(3, f64), f: f64) !*Metal {
+        const ptr = try page.create(Metal);
+        ptr.* = Metal{ .albedo = color, .fuzz = if (f < 1) f else 1 };
+        return ptr;
+    }
+
+    fn destroy(self: *Metal) void {
+        page.destroy(self);
     }
 
     fn scatter(self: Metal, ray_in: Ray, rec: *HitRecord, attenuation: *@Vector(3, f64), scattered: *Ray) bool {
@@ -93,3 +142,4 @@ const Dialectric = struct {
         return r0 + (1 - r0) * std.math.pow(f64, 1.0 - cosine, 5.0);
     }
 };
+

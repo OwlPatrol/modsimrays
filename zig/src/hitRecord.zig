@@ -24,6 +24,11 @@ pub const HitRecord = struct {
         };
     }
 
+    pub fn lowerT(self: HitRecord, other: HitRecord) HitRecord {
+        if (other.t < self.t) return other;
+        return self;
+    }
+
     pub fn setFaceNormal(self: *HitRecord, ray: Ray, out_normal: @Vector(3, f64)) void {
         self.*.front_face = Vec3.dot(ray.dir, out_normal) < 0;
         self.*.normal = if (self.front_face) out_normal else -out_normal; 

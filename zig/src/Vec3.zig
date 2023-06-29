@@ -1,6 +1,6 @@
 const std = @import("std");
 pub const Vec3 = @Vector(3, f64);
-const floatRand = @import("main.zig").floatRand;
+const floatRand = @import("utils.zig").floatRand;
 
 
 /// Constructor for a Vec3

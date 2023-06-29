@@ -1,9 +1,5 @@
-const Vec3 = @import("Vec3.zig");
 const std = @import("std");
-const c = 
-    @cImport({
-        @cInclude("SDL.h");
-        });
+const Vec3 = @import("Vec3.zig");
 
 pub fn renderColor(writer: anytype, col: @Vector(3, f64), samples: f64, x: usize, y: usize) !void {
     var scale = 1 / samples;

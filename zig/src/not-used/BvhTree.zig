@@ -5,7 +5,7 @@ const Ray = @import("ray.zig").Ray;
 const HitRecord = @import("hitRecord.zig").HitRecord;
 const HittableList = @import("hitlist.zig").HittableList;
 const ListElem = @import("hitlist.zig").ListElem;
-const uintRand = @import("main.zig").u32Rand;
+const uintRand = @import("utils.zig").u32Rand;
 const sort = std.sort.sort;
 
 

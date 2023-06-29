@@ -5,7 +5,7 @@ const Ray = @import("ray.zig").Ray;
 const Shape = @import("shapes.zig").Shape;
 const HitRecord = @import("hitRecord.zig").HitRecord;
 const Hittable = @import("hittable.zig").Hittable;
-const uintRand = @import("main.zig").uintRand;
+const uintRand = @import("utils.zig").uintRand;
 const sort = std.sort.sort;
 
 pub const BvhNode = struct {

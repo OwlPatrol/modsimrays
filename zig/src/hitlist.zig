@@ -1,7 +1,6 @@
 const std = @import("std");
 const Vec3 = @import("Vec3.zig");
 const Ray = @import("ray.zig").Ray;
-const color = @import("color.zig");
 const HitRecord = @import("hitRecord.zig").HitRecord;
 const Shape = @import("shapes.zig").Shape;
 const BoundingBox = @import("boundingBox.zig").BoundingBox;
@@ -11,8 +10,8 @@ const Allocator = std.mem.Allocator;
 const Point = Vec3.init;   
 
 pub const ListElem = union(enum) {
-    tree: Bvh,
-    shape: Shape,
+    tree: *Bvh,
+    shape: *Shape,
 
     pub fn hit(self: ListElem, ray: Ray, t_min: f64, t_max: f64, rec: *HitRecord) bool {
         return switch(self) {
@@ -30,11 +29,11 @@ pub const HittableList = struct {
         return HittableList{.objects = ArrayList.init(all)};
     }
 
-    pub fn addShape(self: *HittableList, shape: Shape) !void {
+    pub fn addShape(self: *HittableList, shape: *Shape) !void {
         try self.add(ListElem{.shape = shape});
     }
 
-    pub fn addTree(self: *HittableList, tree: Bvh) !void {
+    pub fn addTree(self: *HittableList, tree: *Bvh) !void {
         try self.add(ListElem{.tree = tree});
     }
 
