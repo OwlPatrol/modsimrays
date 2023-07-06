@@ -85,7 +85,7 @@ pub fn main() !void {
 
     // Main loop
     for (0..height) |row| {
-        //std.debug.print("There are {} rows left to render\n", .{height - row});
+        std.debug.print("There are {} rows left to render\n", .{height - row});
         for (0..width) |col| {
             var pixel_color = point(0, 0, 0);
             for (0..samples) |_| {

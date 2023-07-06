@@ -124,7 +124,7 @@ const NoiseTexture = struct {
 
 const ImageTexture = struct {
     const bytes_per_pixel: usize = 4;
-    data: [*]const u8,
+    data: []const u8,
     width: usize, 
     height: usize,
     bytes_per_scanline: usize,
@@ -133,7 +133,8 @@ const ImageTexture = struct {
         var img = try zigimg.Image.fromFilePath(page, file_path);
         defer img.deinit();
         const ptr = try page.create(ImageTexture);
-        ptr.* = ImageTexture {.data = img.rawBytes().ptr, .width = img.width, .height = img.height, .bytes_per_scanline = bytes_per_pixel*img.width};
+        var data = try page.dupe(u8, img.rawBytes());
+        ptr.* = ImageTexture {.data = data, .width = img.width, .height = img.height, .bytes_per_scanline = bytes_per_pixel*img.height};
         return ptr;
     }
 
@@ -154,8 +155,8 @@ const ImageTexture = struct {
         if(j >= self.height) j = self.height-1;
 
         const color_scale = 1.0/255.0;
-        const pixel = self.data+j+i*bytes_per_pixel;
-        var color = Color{@floatFromInt(pixel[0]), @floatFromInt(pixel[1]), @floatFromInt(pixel[2])};
+        const index =j*self.bytes_per_scanline+i*bytes_per_pixel;
+        var color = Color{@floatFromInt(self.data[index]), @floatFromInt(self.data[index+1]), @floatFromInt(self.data[index+2])};
         color = Vec3.scalar(color, color_scale);
         return color;
     }
