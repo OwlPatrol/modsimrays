@@ -20,7 +20,7 @@ pub const Camera = struct {
         const theta = std.math.degreesToRadians(f64, vfov);
         const h = @tan(theta / 2);
         const height = 2.0 * h;
-        const width = aspect_ratio * height;
+        const width = height/aspect_ratio;
 
         const w = Vec3.normalize(lookfrom - lookat);
         const u = Vec3.normalize(Vec3.cross(vup, w));

@@ -84,7 +84,7 @@ pub fn div(self: Vec3, num: f64) Vec3 {
 }
 
 pub fn toInt(comptime T: type, self: Vec3) @Vector(3, T) {
-    return .{@floatToInt(T, self[0]), @floatToInt(T, self[1]), @floatToInt(T, self[2])};
+    return .{@intFromFloat(self[0]), @intFromFloat(self[1]), @intFromFloat(self[2])};
 }
 
 pub fn nearZero(self: Vec3) bool {

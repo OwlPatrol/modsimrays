@@ -7,9 +7,8 @@ const ListElem = @import("hitlist.zig").ListElem;
 const HitRecord = @import("hitRecord.zig").HitRecord;
 const Allocator = std.mem.Allocator;
 const u32Rand = @import("utils.zig").u32Rand;
-const sort = std.sort.sort;
+const sort = std.sort.heap;
 const page = std.heap.page_allocator;
-
 
 fn compareBoxes(a: *Shape, b: *Shape, axis: u32) bool {
     return a.bounding(0, 0).min[axis] < b.bounding(0, 0).min[axis];
@@ -98,7 +97,7 @@ pub const Tree = struct {
     }
 
     pub fn init(timeStart: f64, timeEnd: f64, hittable_list: *HittableList) !Tree {
-        return try initSlice(timeStart, timeEnd, 0, @intCast(u32,hittable_list.objects.items.len), hittable_list);
+        return try initSlice(timeStart, timeEnd, 0, @intCast(hittable_list.objects.items.len), hittable_list);
     }
 
     fn initSlice(timeStart: f64, timeEnd: f64, start: u32, end: u32, hittable_list: *HittableList) !Tree {
